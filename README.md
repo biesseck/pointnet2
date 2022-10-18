@@ -1,3 +1,19 @@
+### BERNARDO
+
+```
+ENV_NAME=bjgbiesseck_pointnet2_tf_original_biesseck
+conda create --name $ENV_NAME python=2.7
+conda activate $ENV_NAME
+
+pip install matplotlib h5py opencv-python==4.2.0.32 tensorflow==1.4.0
+conda install cudatoolkit
+conda install cudnn
+
+cd tf_ops/grouping; ./tf_grouping_compile.sh; cd ../sampling; ./tf_sampling_compile.sh; cd ../..
+```
+
+
+
 ### PointNet++: *Deep Hierarchical Feature Learning on Point Sets in a Metric Space*
 Created by <a href="http://charlesrqi.com" target="_blank">Charles R. Qi</a>, <a href="http://stanford.edu/~ericyi">Li (Eric) Yi</a>, <a href="http://ai.stanford.edu/~haosu/" target="_blank">Hao Su</a>, <a href="http://geometry.stanford.edu/member/guibas/" target="_blank">Leonidas J. Guibas</a> from Stanford University.
 
