@@ -1,17 +1,34 @@
 ### BERNARDO
 
 ```
+# install cuda-8.0
+https://developer.nvidia.com/cuda-80-ga2-download-archive
+
+# install cuDNN v6.0 (April 27, 2017), for CUDA 8.0
+Download "https://developer.nvidia.com/compute/machine-learning/cudnn/secure/v6/prod/8.0_20170307/cudnn-8.0-linux-x64-v6.0-tgz"
+Extract "cudnn-8.0-linux-x64-v6.0-tgz"
+Copy all files in "cudnn-8.0-linux-x64-v6.0/cuda/include" to "/usr/local/cuda-8.0/include"
+Copy all files in "cudnn-8.0-linux-x64-v6.0/cuda/lib64"   to "/usr/local/cuda-8.0/lib64"
+
+# install gcc-5 and g++-5
+https://packages.ubuntu.com/bionic/amd64/gcc-5/download
+https://packages.ubuntu.com/bionic/amd64/g++-5/download
+Create a symbolic link of "/usr/bin/gcc-5" to "/usr/local/cuda-8.0/bin/gcc"
+Create a symbolic link of "/usr/bin/g++-5" to "/usr/local/cuda-8.0/bin/g++"
+
+--------------------
+
 ENV_NAME=bjgbiesseck_pointnet2_tf_original_biesseck
 conda create --name $ENV_NAME python=2.7
 conda activate $ENV_NAME
 
-pip install matplotlib h5py opencv-python==4.2.0.32 tensorflow==1.4.0
+pip install matplotlib h5py opencv-python==4.2.0.32 tensorflow==1.4.0 tensorflow-gpu==1.4.0
 conda install cudatoolkit
 conda install cudnn
 
 git clone https://github.com/biesseck/pointnet2.git
 cd pointnet2
-cd tf_ops/grouping; ./tf_grouping_compile.sh; cd ../sampling; ./tf_sampling_compile.sh; cd ../..
+cd tf_ops/grouping; ./tf_grouping_compile.sh; cd ../sampling; ./tf_sampling_compile.sh; cd ../3d_interpolation; ./tf_interpolate_compile.sh; cd ../..
 python train.py
 ```
 
