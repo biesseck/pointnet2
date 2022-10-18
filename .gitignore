@@ -1,6 +1,8 @@
 
 *~
 *.pyc
+*.so
+*.so.*
 
 data/
 log/

@@ -1,6 +1,7 @@
 #/bin/bash
 
-CUDA_HOME=/usr/local/cuda-10.0
+# CUDA_HOME=/usr/local/cuda-10.0
+CUDA_HOME=/usr/local/cuda-8.0
 
 # Bernardo
 TF_INC=$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_include())')
