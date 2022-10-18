@@ -9,7 +9,10 @@ pip install matplotlib h5py opencv-python==4.2.0.32 tensorflow==1.4.0
 conda install cudatoolkit
 conda install cudnn
 
+git clone https://github.com/biesseck/pointnet2.git
+cd pointnet2
 cd tf_ops/grouping; ./tf_grouping_compile.sh; cd ../sampling; ./tf_sampling_compile.sh; cd ../..
+python train.py
 ```
 
 
