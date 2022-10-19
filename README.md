@@ -21,6 +21,11 @@ Create a symbolic link of "/usr/bin/g++-5" to "/usr/local/cuda-8.0/bin/g++"
 ENV_NAME=bjgbiesseck_pointnet2_tf_original_biesseck
 conda create --name $ENV_NAME python=2.7
 conda activate $ENV_NAME
+conda env config vars set CUDA_HOME="/usr/local/cuda-8.0"
+conda env config vars set LD_LIBRARY_PATH="$CUDA_HOME/lib64"
+conda env config vars set PATH="$CUDA_HOME:$CUDA_HOME/bin:$LD_LIBRARY_PATH:$PATH"
+conda deactivate
+conda activate $ENV_NAME
 
 pip install matplotlib h5py opencv-python==4.2.0.32 tensorflow==1.4.0 tensorflow-gpu==1.4.0
 conda install cudatoolkit
