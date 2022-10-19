@@ -25,7 +25,7 @@ class TreeFRGCv2:
         # sub_folders = [f.path for f in os.scandir(dir_path) if f.is_dir()]
         sub_folders = [f.name for f in os.scandir(dir_path) if f.is_dir()]
         return sorted(sub_folders)
-    
+
     def get_all_images_and_pointclouds_paths(self, dir_path, img_ext='.ppm', pc_ext='.abs.gz'):
         dir_path += '/nd1'
         all_sub_folders = self.get_all_sub_folders(dir_path)[1:]
@@ -45,7 +45,7 @@ class TreeFRGCv2:
             all_img_paths += img_paths
             all_pc_paths += pc_paths
         return all_pc_paths, all_img_paths
-    
+
     def get_all_images_and_pointclouds_paths_by_season(self, dir_path, img_ext='.ppm', pc_ext='.abs.gz'):
         dir_path += '/nd1'
         all_sub_folders = self.get_all_sub_folders(dir_path)[1:]
@@ -54,31 +54,21 @@ class TreeFRGCv2:
             files = glob.glob(sub_folder + '/*' + pc_ext)
             if len(files) > 0:
                 sub_folders_containing_pointclouds.append(sub_folder)
-                # print('sub_folder:', sub_folder)
-                # print('files:', files)
-        img_paths_by_season = {}
-        img_subject_by_season = {}
-        pc_paths_by_season = {}
-        pc_subject_by_season = {}
+
+        pc_subjects_paths_by_season = {}
+        img_subjects_paths_by_season = {}
         for sub_folder_pointcloud in sub_folders_containing_pointclouds:
-            img_paths = sorted(glob.glob(sub_folder_pointcloud + '/*' + img_ext))
             pc_paths =  sorted(glob.glob(sub_folder_pointcloud + '/*' + pc_ext))
-
-            img_subjects = [path_file.split('/')[-1].split('.')[0].split('d')[0] for path_file in img_paths]
-            pc_subjects = [path_file.split('/')[-1].split('.')[0].split('d')[0] for path_file in pc_paths]
-
-            # for i in range(len(img_subjects)):
-            #     print 'img_paths['+str(i)+']: ', img_paths[i], '    img_subjects['+str(i)+']: ' + img_subjects[i]
-            #     print 'pc_paths['+str(i)+']: ', pc_paths[i], '    pc_subjects['+str(i)+']: ' + pc_subjects[i]
-            #     print '----------------'
-
-            season = sub_folder_pointcloud.split('/')[-1]
-            img_paths_by_season[season] = img_paths
-            pc_paths_by_season[season] = pc_paths
-            img_subject_by_season[season] = img_subjects
-            pc_subject_by_season[season] = pc_subjects
+            img_paths = sorted(glob.glob(sub_folder_pointcloud + '/*' + img_ext))
             
-        return pc_paths_by_season, pc_subject_by_season, img_paths_by_season, img_subject_by_season
+            pc_subjects_paths =  [(pc_paths[i].split('/')[-1].split('.')[0].split('d')[0], pc_paths[i]) for i in range(len(pc_paths))]
+            img_subjects_paths = [(img_paths[i].split('/')[-1].split('.')[0].split('d')[0], img_paths[i]) for i in range(len(img_paths))]
+            
+            season = sub_folder_pointcloud.split('/')[-1]
+            pc_subjects_paths_by_season[season] = pc_subjects_paths
+            img_subjects_paths_by_season[season] = img_subjects_paths
+            
+        return pc_subjects_paths_by_season, img_subjects_paths_by_season
 
 
 if __name__ == '__main__':
@@ -87,8 +77,8 @@ if __name__ == '__main__':
     # all_pc_paths, all_img_paths = TreeFRGCv2().get_all_images_and_pointclouds_paths(dir_path=frgc_path)
     # print 'all_pc_paths:', all_pc_paths
     
-    pc_paths_by_season, pc_subject_by_season, img_paths_by_season, img_subject_by_season = TreeFRGCv2().get_all_images_and_pointclouds_paths_by_season(dir_path=frgc_path)
-    # print 'pc_paths_by_season.keys():', pc_paths_by_season.keys()
-    # print 'pc_paths_by_season[\'Spring2003range\']:', pc_paths_by_season['Spring2003range']
-    # print 'pc_paths_by_season[\'Fall2003range\']:', pc_paths_by_season['Fall2003range']
-    # print 'pc_paths_by_season[\'Spring2004range\']:', pc_paths_by_season['Spring2004range']
+    pc_subjects_paths_by_season, img_subjects_paths_by_season = TreeFRGCv2().get_all_images_and_pointclouds_paths_by_season(dir_path=frgc_path)
+    print 'pc_subjects_paths_by_season.keys():', pc_subjects_paths_by_season.keys()
+    # print 'pc_subjects_paths_by_season[\'Spring2003range\']:', pc_subjects_paths_by_season['Spring2003range']
+    # print 'pc_subjects_paths_by_season[\'Fall2003range\']:', pc_subjects_paths_by_season['Fall2003range']
+    # print 'pc_subjects_paths_by_season[\'Spring2004range\']:', pc_subjects_paths_by_season['Spring2004range']
