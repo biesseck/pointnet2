@@ -12,6 +12,8 @@ ROOT_DIR = BASE_DIR
 sys.path.append(os.path.join(ROOT_DIR, '../utils'))
 import provider
 
+from frgc_loader.tree_frgc import TreeFRGCv2
+
 def pc_normalize(pc):
     l = pc.shape[0]
     centroid = np.mean(pc, axis=0)
@@ -33,9 +35,14 @@ class FRGCv2_Dataset():
         # else:
         #     self.catfile = os.path.join(self.root, 'shape_names.txt')
 
-        # Bernardo
-        self.catfile = os.path.join(self.root, 'frgcv2_shape_names.txt')
+        # # Bernardo
+        # self.catfile = os.path.join(self.root, 'frgcv2_shape_names.txt')
 
+        # Bernardo
+        pc_subjects_paths_by_season, img_subjects_paths_by_season = TreeFRGCv2().get_all_images_and_pointclouds_paths_by_season(dir_path=self.root)
+        print 'frgc2_dataset.py: FRGCv2_Dataset(): __init__(): pc_subjects_paths_by_season.keys() =', pc_subjects_paths_by_season.keys()
+        sys.exit(0)
+        
         self.cat = [line.rstrip() for line in open(self.catfile)]
         self.classes = dict(zip(self.cat, range(len(self.cat))))  
         self.normal_channel = normal_channel
@@ -50,10 +57,10 @@ class FRGCv2_Dataset():
         #     shape_ids['train'] = [line.rstrip() for line in open(os.path.join(self.root, 'modelnet40_train.txt'))] 
         #     shape_ids['test']= [line.rstrip() for line in open(os.path.join(self.root, 'modelnet40_test.txt'))]
 
-        # Bernardo
-        shape_ids = {}
-        shape_ids['train'] = [line.rstrip() for line in open(os.path.join(self.root, 'frgcv2_train.txt'))] 
-        shape_ids['test']= [line.rstrip() for line in open(os.path.join(self.root, 'frgcv2_test.txt'))]
+        # # Bernardo
+        # shape_ids = {}
+        # shape_ids['train'] = [line.rstrip() for line in open(os.path.join(self.root, 'frgcv2_train.txt'))] 
+        # shape_ids['test']= [line.rstrip() for line in open(os.path.join(self.root, 'frgcv2_test.txt'))]
 
         assert(split=='train' or split=='test')
         shape_names = ['_'.join(x.split('_')[0:-1]) for x in shape_ids[split]]

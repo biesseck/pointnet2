@@ -20,10 +20,11 @@ sys.path.append(os.path.join(ROOT_DIR, '../models'))
 sys.path.append(os.path.join(ROOT_DIR, '../utils'))
 import provider
 import tf_util
+
 # import modelnet_dataset     # original
 # import modelnet_h5_dataset  # original
-import frgc2_dataset          # Bernardo
-import frgc2_h5_dataset       # Bernardo
+from frgc_loader import frgc2_dataset    # Bernardo
+# from frgc_loader import frgc2_h5_dataset       # Bernardo
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
@@ -54,11 +55,11 @@ DECAY_STEP = FLAGS.decay_step
 DECAY_RATE = FLAGS.decay_rate
 
 MODEL = importlib.import_module(FLAGS.model) # import network module
-MODEL_FILE = os.path.join(ROOT_DIR, 'models', FLAGS.model+'.py')
+MODEL_FILE = os.path.join(ROOT_DIR, '../models', FLAGS.model+'.py')
 LOG_DIR = FLAGS.log_dir
 if not os.path.exists(LOG_DIR): os.mkdir(LOG_DIR)
 os.system('cp %s %s' % (MODEL_FILE, LOG_DIR)) # bkp of model def
-os.system('cp train.py %s' % (LOG_DIR)) # bkp of train procedure
+os.system('cp train_face_recognition.py %s' % (LOG_DIR)) # bkp of train procedure
 LOG_FOUT = open(os.path.join(LOG_DIR, 'log_train.txt'), 'w')
 LOG_FOUT.write(str(FLAGS)+'\n')
 
