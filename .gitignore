@@ -3,6 +3,7 @@
 *.pyc
 *.so
 *.so.*
+*.duo
 
 data/
 log/
