@@ -1,0 +1,94 @@
+import sys
+import os
+import glob
+from pathlib import Path
+
+# BERNARDO
+class TreeFRGCv2:
+    def __walk(self, dir_path=Path()):
+        contents = list(dir_path.iterdir())
+        for path in contents:
+            if path.is_dir():  # extend the prefix and recurse:
+                yield str(path)
+                # yield from self.__walk(path)
+                yield self.__walk(path)
+
+    def get_all_sub_folders(self, dir_path=''):
+        # dir_path = dir_path.replace('//', '/')
+        folders = [dir_path]
+        for folder in self.__walk(Path(dir_path)):
+            if isinstance(folder, str):
+                folders.append(folder)
+        return sorted(folders)
+
+    def get_sub_folders_one_level(self, dir_path=''):
+        # sub_folders = [f.path for f in os.scandir(dir_path) if f.is_dir()]
+        sub_folders = [f.name for f in os.scandir(dir_path) if f.is_dir()]
+        return sorted(sub_folders)
+    
+    def get_all_images_and_pointclouds_paths(self, dir_path, img_ext='.ppm', pc_ext='.abs.gz'):
+        dir_path += '/nd1'
+        all_sub_folders = self.get_all_sub_folders(dir_path)[1:]
+        sub_folders_containing_pointclouds = []
+        for sub_folder in all_sub_folders:
+            files = glob.glob(sub_folder + '/*' + pc_ext)
+            if len(files) > 0:
+                sub_folders_containing_pointclouds.append(sub_folder)
+                # print('sub_folder:', sub_folder)
+                # print('files:', files)
+        all_img_paths = []
+        all_pc_paths = []
+        for sub_folder_pointcloud in sub_folders_containing_pointclouds:
+            img_paths = sorted(glob.glob(sub_folder_pointcloud + '/*' + img_ext))
+            pc_paths =  sorted(glob.glob(sub_folder_pointcloud + '/*' + pc_ext))
+            
+            all_img_paths += img_paths
+            all_pc_paths += pc_paths
+        return all_pc_paths, all_img_paths
+    
+    def get_all_images_and_pointclouds_paths_by_season(self, dir_path, img_ext='.ppm', pc_ext='.abs.gz'):
+        dir_path += '/nd1'
+        all_sub_folders = self.get_all_sub_folders(dir_path)[1:]
+        sub_folders_containing_pointclouds = []
+        for sub_folder in all_sub_folders:
+            files = glob.glob(sub_folder + '/*' + pc_ext)
+            if len(files) > 0:
+                sub_folders_containing_pointclouds.append(sub_folder)
+                # print('sub_folder:', sub_folder)
+                # print('files:', files)
+        img_paths_by_season = {}
+        img_subject_by_season = {}
+        pc_paths_by_season = {}
+        pc_subject_by_season = {}
+        for sub_folder_pointcloud in sub_folders_containing_pointclouds:
+            img_paths = sorted(glob.glob(sub_folder_pointcloud + '/*' + img_ext))
+            pc_paths =  sorted(glob.glob(sub_folder_pointcloud + '/*' + pc_ext))
+
+            img_subjects = [path_file.split('/')[-1].split('.')[0].split('d')[0] for path_file in img_paths]
+            pc_subjects = [path_file.split('/')[-1].split('.')[0].split('d')[0] for path_file in pc_paths]
+
+            # for i in range(len(img_subjects)):
+            #     print 'img_paths['+str(i)+']: ', img_paths[i], '    img_subjects['+str(i)+']: ' + img_subjects[i]
+            #     print 'pc_paths['+str(i)+']: ', pc_paths[i], '    pc_subjects['+str(i)+']: ' + pc_subjects[i]
+            #     print '----------------'
+
+            season = sub_folder_pointcloud.split('/')[-1]
+            img_paths_by_season[season] = img_paths
+            pc_paths_by_season[season] = pc_paths
+            img_subject_by_season[season] = img_subjects
+            pc_subject_by_season[season] = pc_subjects
+            
+        return pc_paths_by_season, pc_subject_by_season, img_paths_by_season, img_subject_by_season
+
+
+if __name__ == '__main__':
+    frgc_path = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/data/FRGCv2.0/FRGC-2.0-dist'
+
+    # all_pc_paths, all_img_paths = TreeFRGCv2().get_all_images_and_pointclouds_paths(dir_path=frgc_path)
+    # print 'all_pc_paths:', all_pc_paths
+    
+    pc_paths_by_season, pc_subject_by_season, img_paths_by_season, img_subject_by_season = TreeFRGCv2().get_all_images_and_pointclouds_paths_by_season(dir_path=frgc_path)
+    # print 'pc_paths_by_season.keys():', pc_paths_by_season.keys()
+    # print 'pc_paths_by_season[\'Spring2003range\']:', pc_paths_by_season['Spring2003range']
+    # print 'pc_paths_by_season[\'Fall2003range\']:', pc_paths_by_season['Fall2003range']
+    # print 'pc_paths_by_season[\'Spring2004range\']:', pc_paths_by_season['Spring2004range']
