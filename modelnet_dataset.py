@@ -126,9 +126,34 @@ class ModelNetDataset():
         self.batch_idx += 1
         if augment: batch_data = self._augment_batch_data(batch_data)
         return batch_data, batch_label
-    
+
+
+'''
+# original
 if __name__ == '__main__':
     d = ModelNetDataset(root = '../data/modelnet40_normal_resampled', split='test')
+    print(d.shuffle)
+    print(len(d))
+    import time
+    tic = time.time()
+    for i in range(10):
+        ps, cls = d[i]
+    print(time.time() - tic)
+    print(ps.shape, type(ps), cls)
+
+    print(d.has_next_batch())
+    ps_batch, cls_batch = d.next_batch(True)
+    print(ps_batch.shape)
+    print(cls_batch.shape)
+'''
+
+# Bernardo
+if __name__ == '__main__':
+    # d = ModelNetDataset(root=DATA_PATH, modelnet10=False, npoints=NUM_POINT, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    d = ModelNetDataset(root='/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/data/modelnet40_normal_resampled', modelnet10=True, split='train')
+    # d = ModelNetDataset(root = '../data/modelnet40_normal_resampled', split='test')
+
+
     print(d.shuffle)
     print(len(d))
     import time
