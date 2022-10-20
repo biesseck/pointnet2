@@ -70,18 +70,23 @@ BN_DECAY_CLIP = 0.99
 
 HOSTNAME = socket.gethostname()
 
-NUM_CLASSES = 40
+# NUM_CLASSES = 40    # original
+
 
 # Shapenet official train/test split
 if FLAGS.normal:
     assert(NUM_POINT<=10000)
     DATA_PATH = os.path.join(ROOT_DIR, '../data/FRGCv2.0/FRGC-2.0-dist')
     TRAIN_DATASET = frgc2_dataset.FRGCv2_Dataset(root=DATA_PATH, npoints=NUM_POINT, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
-    TEST_DATASET = frgc2_dataset.FRGCv2_Dataset(root=DATA_PATH, npoints=NUM_POINT, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    TEST_DATASET  = frgc2_dataset.FRGCv2_Dataset(root=DATA_PATH, npoints=NUM_POINT, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
 # else:
 #     assert(NUM_POINT<=2048)
 #     TRAIN_DATASET = frgc2_h5_dataset.FRGCv2_H5Dataset(os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/train_files.txt'), batch_size=BATCH_SIZE, npoints=NUM_POINT, shuffle=True)
 #     TEST_DATASET = frgc2_h5_dataset.FRGCv2_H5Dataset(os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/test_files.txt'), batch_size=BATCH_SIZE, npoints=NUM_POINT, shuffle=False)
+
+# Bernardo
+assert TRAIN_DATASET.num_classes == TEST_DATASET.num_classes
+NUM_CLASSES = TRAIN_DATASET.num_classes
 
 def log_string(out_str):
     LOG_FOUT.write(out_str+'\n')

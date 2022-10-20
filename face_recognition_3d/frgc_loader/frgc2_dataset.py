@@ -28,45 +28,38 @@ class FRGCv2_Dataset():
         self.batch_size = batch_size
         self.npoints = npoints
         self.normalize = normalize
+                
+        # Bernardo
+        pc_subjects_paths_by_season, img_subjects_paths_by_season, unique_subjects_names_by_season = TreeFRGCv2().get_all_images_and_pointclouds_paths_by_season(dir_path=self.root)
+        # print 'frgc2_dataset.py: FRGCv2_Dataset(): __init__(): pc_subjects_paths_by_season.keys() =', pc_subjects_paths_by_season.keys()
+        # print 'unique_subjects_names_by_season:', unique_subjects_names_by_season
         
-        # # original
-        # if modelnet10:
-        #     self.catfile = os.path.join(self.root, 'modelnet10_shape_names.txt')
-        # else:
-        #     self.catfile = os.path.join(self.root, 'shape_names.txt')
-
-        # # Bernardo
-        # self.catfile = os.path.join(self.root, 'frgcv2_shape_names.txt')
+        # Bernardo
+        unique_common_subjects_names = TreeFRGCv2().get_unique_common_subjects_names(unique_subjects_names_by_season)
+        # print 'unique_common_subjects_names:', unique_common_subjects_names
+        # print 'len(unique_common_subjects_names):', len(unique_common_subjects_names)
+        
+        # Bernardo
+        filtered_pc_subjects_paths_by_season = TreeFRGCv2().filter_only_common_subjects(pc_subjects_paths_by_season, unique_common_subjects_names)
+        # filtered_img_subjects_paths_by_season = TreeFRGCv2().filter_only_common_subjects(img_subjects_paths_by_season, unique_common_subjects_names)
 
         # Bernardo
-        pc_subjects_paths_by_season, img_subjects_paths_by_season = TreeFRGCv2().get_all_images_and_pointclouds_paths_by_season(dir_path=self.root)
-        print 'frgc2_dataset.py: FRGCv2_Dataset(): __init__(): pc_subjects_paths_by_season.keys() =', pc_subjects_paths_by_season.keys()
-        sys.exit(0)
-        
-        self.cat = [line.rstrip() for line in open(self.catfile)]
+        self.cat = unique_common_subjects_names
         self.classes = dict(zip(self.cat, range(len(self.cat))))  
+        self.num_classes = len(unique_common_subjects_names)
         self.normal_channel = normal_channel
-        
+        # print 'self.cat:', self.cat
+        # print 'self.classes:', self.classes
 
-        # # original
-        # shape_ids = {}
-        # if modelnet10:
-        #     shape_ids['train'] = [line.rstrip() for line in open(os.path.join(self.root, 'modelnet10_train.txt'))] 
-        #     shape_ids['test']= [line.rstrip() for line in open(os.path.join(self.root, 'modelnet10_test.txt'))]
-        # else:
-        #     shape_ids['train'] = [line.rstrip() for line in open(os.path.join(self.root, 'modelnet40_train.txt'))] 
-        #     shape_ids['test']= [line.rstrip() for line in open(os.path.join(self.root, 'modelnet40_test.txt'))]
-
-        # # Bernardo
-        # shape_ids = {}
-        # shape_ids['train'] = [line.rstrip() for line in open(os.path.join(self.root, 'frgcv2_train.txt'))] 
-        # shape_ids['test']= [line.rstrip() for line in open(os.path.join(self.root, 'frgcv2_test.txt'))]
-
+        # Bernardo
         assert(split=='train' or split=='test')
-        shape_names = ['_'.join(x.split('_')[0:-1]) for x in shape_ids[split]]
-        # list of (shape_name, shape_txt_file_path) tuple
-        self.datapath = [(shape_names[i], os.path.join(self.root, shape_names[i], shape_ids[split][i])+'.txt') for i in range(len(shape_ids[split]))]
-
+        self.datapath = []
+        if split=='train':
+            self.datapath += filtered_pc_subjects_paths_by_season['Spring2003range']
+            self.datapath += filtered_pc_subjects_paths_by_season['Fall2003range']
+        elif split=='test':
+            self.datapath += filtered_pc_subjects_paths_by_season['Spring2004range']
+        
         self.cache_size = cache_size # how many data points to cache in memory
         self.cache = {} # from index to (point_set, cls) tuple
 
