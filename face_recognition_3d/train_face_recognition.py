@@ -26,7 +26,6 @@ import tf_util
 from frgc_loader import frgc2_dataset    # Bernardo
 # from frgc_loader import frgc2_h5_dataset       # Bernardo
 
-
 # os.environ["CUDA_VISIBLE_DEVICES"]='-1'   # cpu
 # os.environ["CUDA_VISIBLE_DEVICES"]='0'  # gpu
 os.environ["CUDA_VISIBLE_DEVICES"]='1'  # gpu
@@ -46,7 +45,9 @@ parser.add_argument('--optimizer', default='adam', help='adam or momentum [defau
 parser.add_argument('--decay_step', type=int, default=200000, help='Decay step for lr decay [default: 200000]')
 parser.add_argument('--decay_rate', type=float, default=0.7, help='Decay rate for lr decay [default: 0.7]')
 # parser.add_argument('--normal', action='store_true', help='Whether to use normal information')     # original
-parser.add_argument('--normal', type=bool, default=True, help='Whether to use normal information')   # Bernardo
+# parser.add_argument('--normal', type=bool, default=True, help='Whether to use normal information')   # Bernardo
+parser.add_argument('--normal', type=bool, default=False, help='Whether to use normal information')   # Bernardo
+
 FLAGS = parser.parse_args()
 
 EPOCH_CNT = 0
