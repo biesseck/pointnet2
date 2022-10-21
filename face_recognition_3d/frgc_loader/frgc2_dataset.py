@@ -43,8 +43,8 @@ class FRGCv2_Dataset():
         filtered_pc_subjects_paths_by_season = TreeFRGCv2().filter_only_common_subjects(pc_subjects_paths_by_season, unique_common_subjects_names)
         # filtered_img_subjects_paths_by_season = TreeFRGCv2().filter_only_common_subjects(img_subjects_paths_by_season, unique_common_subjects_names)
 
-        # Bernardo
-        self.cat = unique_common_subjects_names
+
+        self.cat = unique_common_subjects_names    # Bernardo
         self.classes = dict(zip(self.cat, range(len(self.cat))))  
         self.num_classes = len(unique_common_subjects_names)
         self.normal_channel = normal_channel
@@ -93,7 +93,14 @@ class FRGCv2_Dataset():
             fn = self.datapath[index]
             cls = self.classes[self.datapath[index][0]]
             cls = np.array([cls]).astype(np.int32)
-            point_set = np.loadtxt(fn[1],delimiter=',').astype(np.float32)
+            # point_set = np.loadtxt(fn[1],delimiter=',').astype(np.float32)   # original
+            # point_set = np.loadtxt(fn[1],delimiter=' ').astype(np.float32)   # Bernardo
+            point_set = np.load(fn[1]).astype(np.float32)                      # Bernardo
+
+            # Bernardo
+            if point_set.shape[1] == 7:        # if contains curvature
+                point_set = point_set[:,:-1]   # remove curvature column
+
             # Take the first npoints
             point_set = point_set[0:self.npoints,:]
             if self.normalize:
