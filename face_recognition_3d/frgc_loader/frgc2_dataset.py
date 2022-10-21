@@ -30,7 +30,7 @@ class FRGCv2_Dataset():
         self.normalize = normalize
                 
         # Bernardo
-        pc_subjects_paths_by_season, img_subjects_paths_by_season, unique_subjects_names_by_season = TreeFRGCv2().get_all_images_and_pointclouds_paths_by_season(dir_path=self.root)
+        pc_subjects_paths_by_season, img_subjects_paths_by_season, unique_subjects_names_by_season = TreeFRGCv2().get_all_images_and_pointclouds_paths_by_season(dir_path=self.root, pc_ext='_centralized-nosetip_with-normals_filter-radius=90.npy')
         # print 'frgc2_dataset.py: FRGCv2_Dataset(): __init__(): pc_subjects_paths_by_season.keys() =', pc_subjects_paths_by_season.keys()
         # print 'unique_subjects_names_by_season:', unique_subjects_names_by_season
         
