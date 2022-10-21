@@ -93,6 +93,10 @@ class FRGCv2_Dataset():
             fn = self.datapath[index]
             cls = self.classes[self.datapath[index][0]]
             cls = np.array([cls]).astype(np.int32)
+
+            # Bernardo
+            print 'frgc2_dataset.py: get_item(): loading file:', fn[1]
+
             # point_set = np.loadtxt(fn[1],delimiter=',').astype(np.float32)   # original
             # point_set = np.loadtxt(fn[1],delimiter=' ').astype(np.float32)   # Bernardo
             point_set = np.load(fn[1]).astype(np.float32)                      # Bernardo
