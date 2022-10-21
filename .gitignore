@@ -1,0 +1,7 @@
+
+*.pyc
+*.duo
+
+/data/*
+log/
+*/log*

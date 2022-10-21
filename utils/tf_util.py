@@ -330,7 +330,8 @@ def fully_connected(inputs,
                     use_xavier=True,
                     stddev=1e-3,
                     weight_decay=None,
-                    activation_fn=tf.nn.relu,
+                    # activation_fn=tf.nn.relu,   # original
+                    activation_fn=tf.nn.softmax,  # Bernardo
                     bn=False,
                     bn_decay=None,
                     is_training=None):
