@@ -21,6 +21,9 @@ sys.path.append(os.path.join(ROOT_DIR, '../utils'))
 import provider
 import tf_util
 
+# Bernardo
+from plots import plots_fr_pointnet2
+
 # import modelnet_dataset     # original
 # import modelnet_h5_dataset  # original
 from frgc_loader import frgc2_dataset    # Bernardo
@@ -68,7 +71,8 @@ LOG_DIR = FLAGS.log_dir
 if not os.path.exists(LOG_DIR): os.mkdir(LOG_DIR)
 os.system('cp %s %s' % (MODEL_FILE, LOG_DIR)) # bkp of model def
 os.system('cp train_face_recognition.py %s' % (LOG_DIR)) # bkp of train procedure
-LOG_FOUT = open(os.path.join(LOG_DIR, 'log_train.txt'), 'w')
+LOG_FILE_NAME = 'log_train.txt'
+LOG_FOUT = open(os.path.join(LOG_DIR, LOG_FILE_NAME), 'w')
 LOG_FOUT.write(str(FLAGS)+'\n')
 
 BN_INIT_DECAY = 0.5
@@ -218,7 +222,9 @@ def train_one_epoch(sess, ops, train_writer):
     loss_sum = 0
     batch_idx = 0
     while TRAIN_DATASET.has_next_batch():
-        batch_data, batch_label = TRAIN_DATASET.next_batch(augment=True)
+        # batch_data, batch_label = TRAIN_DATASET.next_batch(augment=True)   # original
+        batch_data, batch_label = TRAIN_DATASET.next_batch(augment=False)    # Bernardo
+        
         #batch_data = provider.random_point_dropout(batch_data)
         bsize = batch_data.shape[0]
         cur_batch_data[0:bsize,...] = batch_data
@@ -299,7 +305,24 @@ def eval_one_epoch(sess, ops, test_writer):
     return total_correct/float(total_seen)
 
 
+def plot_classification_training_history_dataset_FRGCv2():
+    path_log_file = os.path.join(LOG_DIR, LOG_FILE_NAME)
+    parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = plots_fr_pointnet2.load_original_training_log_pointnet2(path_file=path_log_file)
+
+    title = 'PointNet++ training on FRGCv2 (133 classes) - Classification (1:N)'
+    subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ')
+    # path_image = './training_history.png'
+    path_image = '/'.join(path_log_file.split('/')[:-1]) + '/training_history_from_log_file.png'
+    print 'Saving training history:', path_image
+    plots_fr_pointnet2.plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
+
+
 if __name__ == "__main__":
     log_string('pid: %s'%(str(os.getpid())))
     train()
     LOG_FOUT.close()
+
+    # Bernardo
+    plot_classification_training_history_dataset_FRGCv2()
+
+    print '\nFinished!\n'
