@@ -28,7 +28,7 @@ from frgc_loader import frgc2_dataset    # Bernardo
 
 # os.environ["CUDA_VISIBLE_DEVICES"]='-1'   # cpu
 # os.environ["CUDA_VISIBLE_DEVICES"]='0'  # gpu
-os.environ["CUDA_VISIBLE_DEVICES"]='1'  # gpu
+# os.environ["CUDA_VISIBLE_DEVICES"]='1'  # gpu
 
 
 parser = argparse.ArgumentParser()
