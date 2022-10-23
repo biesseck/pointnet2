@@ -15,11 +15,16 @@ import provider
 from frgc_loader.tree_frgc import TreeFRGCv2
 
 def pc_normalize(pc):
-    l = pc.shape[0]
+    # Bernardo
+    pc /= 100
+    pc = (pc - pc.min()) / (pc.max() - pc.min())
+
+    # l = pc.shape[0]
     centroid = np.mean(pc, axis=0)
     pc = pc - centroid
     m = np.max(np.sqrt(np.sum(pc**2, axis=1)))
     pc = pc / m
+
     return pc
 
 class FRGCv2_Dataset():
