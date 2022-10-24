@@ -26,8 +26,8 @@ from plots import plots_fr_pointnet2
 
 # import modelnet_dataset     # original
 # import modelnet_h5_dataset  # original
-from frgc_loader import frgc2_dataset    # Bernardo
-# from frgc_loader import frgc2_h5_dataset       # Bernardo
+from frgc_loader import frgc2_dataset                                    # Bernardo
+from synthetic_faces_gpmm_loader import synthetic_faces_gpmm_dataset     # Bernardo
 
 # os.environ["CUDA_VISIBLE_DEVICES"]='-1'   # cpu
 # os.environ["CUDA_VISIBLE_DEVICES"]='0'  # gpu
@@ -47,9 +47,13 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Initial learnin
 parser.add_argument('--optimizer', default='adam', help='adam or momentum [default: adam]')
 parser.add_argument('--decay_step', type=int, default=200000, help='Decay step for lr decay [default: 200000]')
 parser.add_argument('--decay_rate', type=float, default=0.7, help='Decay rate for lr decay [default: 0.7]')
+
 # parser.add_argument('--normal', action='store_true', help='Whether to use normal information')     # original
 # parser.add_argument('--normal', type=bool, default=True, help='Whether to use normal information')   # Bernardo
 parser.add_argument('--normal', type=bool, default=False, help='Whether to use normal information')   # Bernardo
+
+# parser.add_argument('--dataset', type=str, default='frgc', help='Name of dataset to train model')   # Bernardo
+parser.add_argument('--dataset', type=str, default='synthetic_gpmm', help='Name of dataset to train model')   # Bernardo
 
 FLAGS = parser.parse_args()
 
@@ -89,9 +93,18 @@ HOSTNAME = socket.gethostname()
 # Shapenet official train/test split
 # if FLAGS.normal:
 #     assert(NUM_POINT<=10000)
-DATA_PATH = os.path.join(ROOT_DIR, '../data/FRGCv2.0/FRGC-2.0-dist')
-TRAIN_DATASET = frgc2_dataset.FRGCv2_Dataset(root=DATA_PATH, npoints=NUM_POINT, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
-TEST_DATASET  = frgc2_dataset.FRGCv2_Dataset(root=DATA_PATH, npoints=NUM_POINT, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+
+if FLAGS.dataset.upper() == 'frgc'.upper() or FLAGS.dataset.upper() == 'frgcv2'.upper():
+    DATA_PATH = os.path.join(ROOT_DIR, '../data/FRGCv2.0/FRGC-2.0-dist')
+    TRAIN_DATASET = frgc2_dataset.FRGCv2_Dataset(root=DATA_PATH, npoints=NUM_POINT, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    TEST_DATASET  = frgc2_dataset.FRGCv2_Dataset(root=DATA_PATH, npoints=NUM_POINT, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
+    DATA_PATH = os.path.join(ROOT_DIR, '../../3DFacePointCloudNet/Data/TrainData')
+    n_classes = 100
+    n_expressions = 5
+    TRAIN_DATASET = synthetic_faces_gpmm_dataset.TreeSyntheticFacesGPMM_Dataset(root=DATA_PATH, npoints=NUM_POINT, num_classes=n_classes, num_expressions=n_expressions, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    TEST_DATASET  = synthetic_faces_gpmm_dataset.TreeSyntheticFacesGPMM_Dataset(root=DATA_PATH, npoints=NUM_POINT, num_classes=n_classes, num_expressions=n_expressions, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+
 # else:
 #     assert(NUM_POINT<=2048)
 #     TRAIN_DATASET = frgc2_h5_dataset.FRGCv2_H5Dataset(os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/train_files.txt'), batch_size=BATCH_SIZE, npoints=NUM_POINT, shuffle=True)
