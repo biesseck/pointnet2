@@ -67,7 +67,8 @@ DECAY_RATE = FLAGS.decay_rate
 
 MODEL = importlib.import_module(FLAGS.model) # import network module
 MODEL_FILE = os.path.join(ROOT_DIR, '../models', FLAGS.model+'.py')
-LOG_DIR = FLAGS.log_dir
+LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + '/logs_training/' + FLAGS.log_dir   # Bernardo
+
 if not os.path.exists(LOG_DIR): os.mkdir(LOG_DIR)
 os.system('cp %s %s' % (MODEL_FILE, LOG_DIR)) # bkp of model def
 os.system('cp train_face_recognition.py %s' % (LOG_DIR)) # bkp of train procedure
