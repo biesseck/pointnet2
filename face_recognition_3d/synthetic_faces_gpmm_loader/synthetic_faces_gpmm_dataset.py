@@ -14,6 +14,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = BASE_DIR
 sys.path.append(os.path.join(ROOT_DIR, '../utils'))
 import provider
+import struct
 
 # from frgc_loader.tree_frgc import TreeFRGCv2
 from synthetic_faces_gpmm_loader.tree_synthetic_faces import TreeSyntheticFacesGPMM
@@ -76,7 +77,7 @@ class TreeSyntheticFacesGPMM_Dataset():
             self.shuffle = shuffle
 
         self.reset()
-        
+
 
     def _augment_batch_data(self, batch_data):
         if self.normal_channel:
@@ -93,6 +94,16 @@ class TreeSyntheticFacesGPMM_Dataset():
         return provider.shuffle_points(rotated_data)
 
 
+    def _readbcn(self, file):
+        npoints = os.path.getsize(file) // 4
+        with open(file,'rb') as f:
+            raw_data = struct.unpack('f'*npoints,f.read(npoints*4))
+            data = np.asarray(raw_data,dtype=np.float32)       
+        # data = data.reshape(7, len(data)//7)   # original
+        data = data.reshape(3, len(data)//3).T   # Bernardo
+        return data                        # Bernardo    
+
+
     def _get_item(self, index): 
         if index in self.cache:
             point_set, cls = self.cache[index]
@@ -102,11 +113,11 @@ class TreeSyntheticFacesGPMM_Dataset():
             cls = np.array([cls]).astype(np.int32)
 
             # Bernardo
-            print('frgc2_dataset.py: get_item(): loading file:', fn[1])
+            print('synthetic_faces_gpmm_dataset.py: _get_item(): loading file:', fn[1])
 
             # point_set = np.loadtxt(fn[1],delimiter=',').astype(np.float32)   # original
-            # point_set = np.loadtxt(fn[1],delimiter=' ').astype(np.float32)   # Bernardo
-            point_set = np.load(fn[1]).astype(np.float32)                      # Bernardo
+            # point_set = np.load(fn[1]).astype(np.float32)                    # Bernardo
+            point_set = self._readbcn(fn[1]).astype(np.float32)                 # Bernardo
 
             # Bernardo
             if point_set.shape[1] == 7:        # if contains curvature
