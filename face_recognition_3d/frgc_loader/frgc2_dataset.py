@@ -2,6 +2,8 @@
     Bernardo: FRGCv2 dataset. Support FRGCv2, XYZ and normal channels.
 '''
 
+from __future__ import print_function
+
 import os
 import os.path
 import json
@@ -9,10 +11,10 @@ import numpy as np
 import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = BASE_DIR
-sys.path.append(os.path.join(ROOT_DIR, '../utils'))
+sys.path.append(os.path.join(ROOT_DIR, '../../utils'))
 import provider
 
-from frgc_loader.tree_frgc import TreeFRGCv2
+from tree_frgc import TreeFRGCv2
 
 def pc_normalize(pc):
     # Bernardo
@@ -100,7 +102,7 @@ class FRGCv2_Dataset():
             cls = np.array([cls]).astype(np.int32)
 
             # Bernardo
-            print 'frgc2_dataset.py: get_item(): loading file:', fn[1]
+            print('frgc2_dataset.py: get_item(): loading file:', fn[1])
 
             # point_set = np.loadtxt(fn[1],delimiter=',').astype(np.float32)   # original
             # point_set = np.loadtxt(fn[1],delimiter=' ').astype(np.float32)   # Bernardo
@@ -158,7 +160,8 @@ class FRGCv2_Dataset():
         return batch_data, batch_label
     
 if __name__ == '__main__':
-    d = ModelNetDataset(root = '../data/modelnet40_normal_resampled', split='test')
+    # d = ModelNetDataset(root = '../data/modelnet40_normal_resampled', split='test')   # original
+    d = FRGCv2_Dataset(root = '../../data/FRGCv2.0/FRGC-2.0-dist', split='test')      # Bernardo
     print(d.shuffle)
     print(len(d))
     import time

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import sys
 import os
 import glob
@@ -105,14 +107,14 @@ if __name__ == '__main__':
     # print 'all_pc_paths:', all_pc_paths
     
     pc_subjects_paths_by_season, img_subjects_paths_by_season, unique_subjects_names_by_season = TreeFRGCv2().get_all_images_and_pointclouds_paths_by_season(dir_path=frgc_path)
-    print 'pc_subjects_paths_by_season.keys():', pc_subjects_paths_by_season.keys()
-    print 'img_subjects_paths_by_season.keys():', img_subjects_paths_by_season.keys()
-    print 'unique_subjects_names_by_season:', unique_subjects_names_by_season
+    print('pc_subjects_paths_by_season.keys():', pc_subjects_paths_by_season.keys())
+    print('img_subjects_paths_by_season.keys():', img_subjects_paths_by_season.keys())
+    print('unique_subjects_names_by_season:', unique_subjects_names_by_season)
 
-    print 'pc_subjects_paths_by_season[\'Spring2003range\']:', pc_subjects_paths_by_season['Spring2003range']
-    print 'pc_subjects_paths_by_season[\'Fall2003range\']:', pc_subjects_paths_by_season['Fall2003range']
-    print 'pc_subjects_paths_by_season[\'Spring2004range\']:', pc_subjects_paths_by_season['Spring2004range']
+    print('pc_subjects_paths_by_season[\'Spring2003range\']:', pc_subjects_paths_by_season['Spring2003range'])
+    print('pc_subjects_paths_by_season[\'Fall2003range\']:', pc_subjects_paths_by_season['Fall2003range'])
+    print('pc_subjects_paths_by_season[\'Spring2004range\']:', pc_subjects_paths_by_season['Spring2004range'])
 
-    print 'unique_subjects_names_by_season[\'Spring2003range\']:', unique_subjects_names_by_season['Spring2003range']
-    print 'unique_subjects_names_by_season[\'Fall2003range\']:', unique_subjects_names_by_season['Fall2003range']
-    print 'unique_subjects_names_by_season[\'Spring2004range\']:', unique_subjects_names_by_season['Spring2004range']
+    print('unique_subjects_names_by_season[\'Spring2003range\']:', unique_subjects_names_by_season['Spring2003range'])
+    print('unique_subjects_names_by_season[\'Fall2003range\']:', unique_subjects_names_by_season['Fall2003range'])
+    print('unique_subjects_names_by_season[\'Spring2004range\']:', unique_subjects_names_by_season['Spring2004range'])
