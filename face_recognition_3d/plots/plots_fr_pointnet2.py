@@ -38,6 +38,8 @@ def load_original_training_log_pointnet2(path_file=''):
 
 def plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title='', subtitle='', path_image='.', show_fig=False, save_fig=False):
     # plot loss during training
+    pyplot.clf()
+
     pyplot.subplot(211)
     pyplot.suptitle(title)
     pyplot.title(subtitle, fontsize=8)
@@ -90,13 +92,16 @@ def break_string(text, substring=', ', num_parts=3):
 
 
 if __name__ == '__main__':
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001[DEFAULT]/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001_normaliz=min-max/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001_normaliz=min-max_div=100/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.0001_normaliz=min-max_div=100/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.005/log_train.txt'
-    path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.01/log_train.txt'
+    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001[DEFAULT]/log_train.txt'
+    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001/log_train.txt'
+    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001_normaliz=min-max/log_train.txt'
+    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001_normaliz=min-max_div=100/log_train.txt'
+    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.0001_normaliz=min-max_div=100/log_train.txt'
+    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.005/log_train.txt'
+    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.01/log_train.txt'
+    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_10exp_lr=0.001_batch=32/log_train.txt'
+    path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_10exp_lr=0.001_batch=64/log_train.txt'
+
 
     # load_original_training_log_pointnet2(path_file=path_log_file)
 
