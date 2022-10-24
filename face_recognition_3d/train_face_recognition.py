@@ -215,6 +215,9 @@ def train():
             train_one_epoch(sess, ops, train_writer)
             eval_one_epoch(sess, ops, test_writer)
 
+            # Bernardo
+            plot_classification_training_history()
+
             # Save the variables to disk.
             if epoch % 10 == 0:
                 save_path = saver.save(sess, os.path.join(LOG_DIR, "model.ckpt"))
@@ -319,6 +322,7 @@ def eval_one_epoch(sess, ops, test_writer):
     return total_correct/float(total_seen)
 
 
+# Bernardo
 def plot_classification_training_history_dataset_FRGCv2():
     path_log_file = os.path.join(LOG_DIR, LOG_FILE_NAME)
     parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = plots_fr_pointnet2.load_original_training_log_pointnet2(path_file=path_log_file)
@@ -331,6 +335,7 @@ def plot_classification_training_history_dataset_FRGCv2():
     plots_fr_pointnet2.plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
 
 
+# Bernardo
 def plot_classification_training_history_dataset_SyntheticFaces():
     path_log_file = os.path.join(LOG_DIR, LOG_FILE_NAME)
     parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = plots_fr_pointnet2.load_original_training_log_pointnet2(path_file=path_log_file)
@@ -343,6 +348,13 @@ def plot_classification_training_history_dataset_SyntheticFaces():
     plots_fr_pointnet2.plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
 
 
+# Bernardo
+def plot_classification_training_history():
+    if FLAGS.dataset.upper() == 'frgc'.upper() or FLAGS.dataset.upper() == 'frgcv2'.upper():
+        plot_classification_training_history_dataset_FRGCv2()
+    elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
+        plot_classification_training_history_dataset_SyntheticFaces()
+
 
 
 
@@ -352,9 +364,6 @@ if __name__ == "__main__":
     LOG_FOUT.close()
 
     # Bernardo
-    if FLAGS.dataset.upper() == 'frgc'.upper() or FLAGS.dataset.upper() == 'frgcv2'.upper():
-        plot_classification_training_history_dataset_FRGCv2()
-    elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
-        plot_classification_training_history_dataset_SyntheticFaces()
+    plot_classification_training_history()
 
     print '\nFinished!\n'
