@@ -7,6 +7,14 @@ import sys
 import os
 import numpy as np
 from matplotlib import pyplot
+import argparse
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-input_path', type=str, default='/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_50exp_lr=0.001_batch=64/log_train.txt', help='Path of train log file')
+
+    return parser.parse_args()
 
 
 def load_original_training_log_pointnet2(path_file=''):
@@ -91,25 +99,29 @@ def break_string(text, substring=', ', num_parts=3):
 
 
 if __name__ == '__main__':
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001[DEFAULT]/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001_normaliz=min-max/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001_normaliz=min-max_div=100/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.0001_normaliz=min-max_div=100/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.005/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.01/log_train.txt'
-    # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_10exp_lr=0.001_batch=32/log_train.txt'
-    path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_50exp_lr=0.001_batch=64/log_train.txt'
+
+    if not '-input_path' in sys.argv:
+        # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001[DEFAULT]/log_train.txt']
+        # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001[DEFAULT]/log_train.txt']
+        # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001/log_train.txt']
+        # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001_normaliz=min-max/log_train.txt']
+        # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.001_normaliz=min-max_div=100/log_train.txt']
+        # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.0001_normaliz=min-max_div=100/log_train.txt']
+        # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.005/log_train.txt']
+        # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.01/log_train.txt']
+        # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_10exp_lr=0.001_batch=32/log_train.txt']
+        sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-25_SyntheticFaces_dataset_200classes_25exp_lr=0.001_batch=64/log_train.txt']
 
 
-    # load_original_training_log_pointnet2(path_file=path_log_file)
+    args = parse_args()
 
-    parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = load_original_training_log_pointnet2(path_file=path_log_file)
+    # load_original_training_log_pointnet2(path_file=args.input_path)
+
+    parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = load_original_training_log_pointnet2(path_file=args.input_path)
     
-    title = 'PointNet++ training on SyntheticFaces (100 classes) - Classification (1:N)'
+    title = 'PointNet++ training on SyntheticFaces (1000 classes) - Classification (1:N)'
     subtitle = 'Parameters: ' + break_string(parameters, substring=', ')
-    # path_image = './training_history.png'
-    path_image = '/'.join(path_log_file.split('/')[:-1]) + '/training_history_from_log_file.png'
+    path_image = '/'.join(args.input_path.split('/')[:-1]) + '/training_history_from_log_file.png'
     plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
 
     
