@@ -61,9 +61,8 @@ def plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_a
     pyplot.ylim(0, 1)
     pyplot.legend()
 
-    pyplot.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.4, hspace=0.4)
-    pyplot.subplots_adjust(top=0.85)
-
+    pyplot.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.8, wspace=0.4, hspace=0.4)
+    
     if save_fig:
         pyplot.savefig(path_image)
     if show_fig:
@@ -100,14 +99,14 @@ if __name__ == '__main__':
     # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.005/log_train.txt'
     # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.01/log_train.txt'
     # path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_10exp_lr=0.001_batch=32/log_train.txt'
-    path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_10exp_lr=0.001_batch=64/log_train.txt'
+    path_log_file = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_50exp_lr=0.001_batch=64/log_train.txt'
 
 
     # load_original_training_log_pointnet2(path_file=path_log_file)
 
     parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = load_original_training_log_pointnet2(path_file=path_log_file)
     
-    title = 'PointNet++ training on FRGCv2 (133 classes) - Classification (1:N)'
+    title = 'PointNet++ training on SyntheticFaces (100 classes) - Classification (1:N)'
     subtitle = 'Parameters: ' + break_string(parameters, substring=', ')
     # path_image = './training_history.png'
     path_image = '/'.join(path_log_file.split('/')[:-1]) + '/training_history_from_log_file.png'
