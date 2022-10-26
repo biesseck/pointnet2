@@ -12,12 +12,12 @@ import numpy as np
 import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = BASE_DIR
-sys.path.append(os.path.join(ROOT_DIR, '../utils'))
+sys.path.append(os.path.join(ROOT_DIR, '../../../utils'))
 import provider
 import struct
 
 # from frgc_loader.tree_frgc import TreeFRGCv2
-from synthetic_faces_gpmm_loader.tree_synthetic_faces import TreeSyntheticFacesGPMM
+from data_loader.loader_synthetic_faces_gpmm.tree_synthetic_faces import TreeSyntheticFacesGPMM
 
 def pc_normalize(pc):
     # Bernardo

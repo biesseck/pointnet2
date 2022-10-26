@@ -11,7 +11,7 @@ import numpy as np
 import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = BASE_DIR
-sys.path.append(os.path.join(ROOT_DIR, '../../utils'))
+sys.path.append(os.path.join(ROOT_DIR, '../../../utils'))
 import provider
 
 from tree_frgc import TreeFRGCv2

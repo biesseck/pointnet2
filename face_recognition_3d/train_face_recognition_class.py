@@ -26,8 +26,8 @@ from plots import plots_fr_pointnet2
 
 # import modelnet_dataset     # original
 # import modelnet_h5_dataset  # original
-from frgc_loader import frgc2_dataset                                    # Bernardo
-from synthetic_faces_gpmm_loader import synthetic_faces_gpmm_dataset     # Bernardo
+from data_loader.loader_frgc2 import frgc2_dataset                                   # Bernardo
+from data_loader.loader_synthetic_faces_gpmm import synthetic_faces_gpmm_dataset     # Bernardo
 
 # os.environ["CUDA_VISIBLE_DEVICES"]='-1'   # cpu
 # os.environ["CUDA_VISIBLE_DEVICES"]='0'  # gpu
