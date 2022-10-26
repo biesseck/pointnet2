@@ -49,14 +49,14 @@ def plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_a
     pyplot.clf()
 
     pyplot.subplot(211)
-    pyplot.suptitle(title)
+    pyplot.suptitle(title, fontsize=12, fontweight='bold')
     pyplot.title(subtitle, fontsize=8)
     # pyplot.plot(history.history['loss'], label='train')
     # pyplot.plot(history.history['val_loss'], label='test')
     pyplot.plot(epoch, eval_mean_loss, label='eval_mean_loss', color='red')
     pyplot.xlabel('Epoch')
     pyplot.ylabel('Error')
-    pyplot.ylim(0, np.max(eval_mean_loss)+np.max(eval_mean_loss)*0.25)
+    pyplot.ylim(0, np.max(eval_mean_loss)*1.25)
     pyplot.legend()
     
     # plot accuracy during training
@@ -69,7 +69,7 @@ def plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_a
     pyplot.ylim(0, 1)
     pyplot.legend()
 
-    pyplot.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.8, wspace=0.4, hspace=0.4)
+    pyplot.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.75, wspace=0.4, hspace=0.4)
     
     if save_fig:
         pyplot.savefig(path_image)
@@ -110,7 +110,7 @@ if __name__ == '__main__':
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.005/log_train.txt']
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.01/log_train.txt']
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_10exp_lr=0.001_batch=32/log_train.txt']
-        sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-25_SyntheticFaces_dataset_200classes_25exp_lr=0.001_batch=64/log_train.txt']
+        sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_30exp_lr=0.001_batch=64/log_train.txt']
 
 
     args = parse_args()
@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
     parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = load_original_training_log_pointnet2(path_file=args.input_path)
     
-    title = 'PointNet++ training on SyntheticFaces (1000 classes) - Classification (1:N)'
+    title = 'PointNet++ training on SyntheticFaces \nClassification (1:N) - 100 classes, 30 expr'
     subtitle = 'Parameters: ' + break_string(parameters, substring=', ')
     path_image = '/'.join(args.input_path.split('/')[:-1]) + '/training_history_from_log_file.png'
     plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
