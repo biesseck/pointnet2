@@ -341,11 +341,11 @@ def plot_classification_training_history():
     parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = plots_fr_pointnet2.load_original_training_log_pointnet2(path_file=path_log_file)
 
     if FLAGS.dataset.upper() == 'frgc'.upper() or FLAGS.dataset.upper() == 'frgcv2'.upper():
-        title = 'PointNet++ training on FRGCv2 ('+str(NUM_CLASSES)+' classes) - Classification (1:N)'    
+        title = 'PointNet++ training on FRGCv2 \nClassification (1:N) - '+str(NUM_CLASSES)+' classes'
     elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
-        title = 'PointNet++ training on SyntheticFaces ('+str(NUM_CLASSES)+' classes) - Classification (1:N)'    
+        title = 'PointNet++ training on SyntheticFaces \nClassification (1:N) - '+str(NUM_CLASSES)+' classes - '+str(n_expressions)+' expressions'
     elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
-        title = 'PointNet++ training on LFW-Reconst3D-MICA \nClassification (1:N) - '+str(NUM_CLASSES)+' classes - min 3 samples'
+        title = 'PointNet++ training on LFW-Reconst3D-MICA \nClassification (1:N) - '+str(NUM_CLASSES)+' classes - min '+str(min_samples)+' samples'
     
     subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ')
     # path_image = './training_history.png'
