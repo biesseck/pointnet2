@@ -2,6 +2,8 @@
     Single-GPU training.
     Will use H5 dataset in default. If using normal, will shift to the normal dataset.
 '''
+from __future__ import print_function
+
 import argparse
 import math
 from datetime import datetime
@@ -343,12 +345,12 @@ def plot_classification_training_history():
     elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
         title = 'PointNet++ training on SyntheticFaces ('+str(NUM_CLASSES)+' classes) - Classification (1:N)'    
     elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
-        title = 'PointNet++ training on LFW-Reconst3D-MICA ('+str(NUM_CLASSES)+' classes) - Classification (1:N)'
+        title = 'PointNet++ training on LFW-Reconst3D-MICA \nClassification (1:N) - '+str(NUM_CLASSES)+' classes - min 3 samples'
     
     subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ')
     # path_image = './training_history.png'
     path_image = '/'.join(path_log_file.split('/')[:-1]) + '/training_history_from_log_file.png'
-    print 'Saving training history:', path_image
+    print('Saving training history:', path_image)
     plots_fr_pointnet2.plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
 
 
@@ -361,4 +363,4 @@ if __name__ == "__main__":
     # Bernardo
     plot_classification_training_history()
 
-    print '\nFinished!\n'
+    print('\nFinished!\n')
