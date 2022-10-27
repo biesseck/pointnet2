@@ -28,6 +28,8 @@ from plots import plots_fr_pointnet2
 # import modelnet_h5_dataset  # original
 from data_loader.loader_frgc2 import frgc2_dataset                                   # Bernardo
 from data_loader.loader_synthetic_faces_gpmm import synthetic_faces_gpmm_dataset     # Bernardo
+from data_loader.loader_reconstructed_MICA import lfw_3Dreconstructed_MICA_dataset   # Bernardo
+
 
 # os.environ["CUDA_VISIBLE_DEVICES"]='-1'   # cpu
 # os.environ["CUDA_VISIBLE_DEVICES"]='0'  # gpu
@@ -39,7 +41,7 @@ parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU
 parser.add_argument('--model', default='pointnet2_cls_ssg', help='Model name [default: pointnet2_cls_ssg]')
 parser.add_argument('--log_dir', default='log_face_recognition', help='Log dir [default: log]')
 # parser.add_argument('--num_point', type=int, default=1024, help='Point Number [default: 1024]')    # original
-parser.add_argument('--num_point', type=int, default=18500, help='Point Number [default: 1024]')     # Bernardo (FRGCv2)
+parser.add_argument('--num_point', type=int, default=5023, help='Point Number [default: 1024]')     # Bernardo (FRGCv2)
 parser.add_argument('--max_epoch', type=int, default=251, help='Epoch to run [default: 251]')
 parser.add_argument('--batch_size', type=int, default=16, help='Batch Size during training [default: 16]')
 parser.add_argument('--learning_rate', type=float, default=0.001, help='Initial learning rate [default: 0.001]')
@@ -53,7 +55,9 @@ parser.add_argument('--decay_rate', type=float, default=0.7, help='Decay rate fo
 parser.add_argument('--normal', type=bool, default=False, help='Whether to use normal information')   # Bernardo
 
 # parser.add_argument('--dataset', type=str, default='frgc', help='Name of dataset to train model')   # Bernardo
-parser.add_argument('--dataset', type=str, default='synthetic_gpmm', help='Name of dataset to train model')   # Bernardo
+# parser.add_argument('--dataset', type=str, default='synthetic_gpmm', help='Name of dataset to train model')   # Bernardo
+parser.add_argument('--dataset', type=str, default='reconst_mica_lfw', help='Name of dataset to train model')   # Bernardo
+
 
 FLAGS = parser.parse_args()
 
@@ -75,7 +79,7 @@ LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + '/logs_training/' + FLAGS
 
 if not os.path.exists(LOG_DIR): os.mkdir(LOG_DIR)
 os.system('cp %s %s' % (MODEL_FILE, LOG_DIR)) # bkp of model def
-os.system('cp train_face_recognition.py %s' % (LOG_DIR)) # bkp of train procedure
+os.system('cp train_face_recognition_class.py %s' % (LOG_DIR)) # bkp of train procedure
 LOG_FILE_NAME = 'log_train.txt'
 LOG_FOUT = open(os.path.join(LOG_DIR, LOG_FILE_NAME), 'w')
 LOG_FOUT.write(str(FLAGS)+'\n')
@@ -98,12 +102,19 @@ if FLAGS.dataset.upper() == 'frgc'.upper() or FLAGS.dataset.upper() == 'frgcv2'.
     DATA_PATH = os.path.join(ROOT_DIR, '../data/FRGCv2.0/FRGC-2.0-dist')
     TRAIN_DATASET = frgc2_dataset.FRGCv2_Dataset(root=DATA_PATH, npoints=NUM_POINT, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
     TEST_DATASET  = frgc2_dataset.FRGCv2_Dataset(root=DATA_PATH, npoints=NUM_POINT, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+
 elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
     DATA_PATH = os.path.join(ROOT_DIR, '../../3DFacePointCloudNet/Data/TrainData')
     n_classes = 100
     n_expressions = 10
     TRAIN_DATASET = synthetic_faces_gpmm_dataset.SyntheticFacesGPMM_Dataset(root=DATA_PATH, npoints=NUM_POINT, num_classes=n_classes, num_expressions=n_expressions, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
     TEST_DATASET  = synthetic_faces_gpmm_dataset.SyntheticFacesGPMM_Dataset(root=DATA_PATH, npoints=NUM_POINT, num_classes=n_classes, num_expressions=n_expressions, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+
+elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
+    DATA_PATH = os.path.join(ROOT_DIR, '../../MICA/demo/output/lfw')
+    min_samples = 3
+    TRAIN_DATASET = lfw_3Dreconstructed_MICA_dataset.LFR_3D_Reconstructed_MICA_Dataset(root=DATA_PATH, npoints=NUM_POINT, min_samples=min_samples, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    TEST_DATASET  = lfw_3Dreconstructed_MICA_dataset.LFR_3D_Reconstructed_MICA_Dataset(root=DATA_PATH, npoints=NUM_POINT, min_samples=min_samples, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
 
 # else:
 #     assert(NUM_POINT<=2048)
@@ -323,38 +334,22 @@ def eval_one_epoch(sess, ops, test_writer):
 
 
 # Bernardo
-def plot_classification_training_history_dataset_FRGCv2():
-    path_log_file = os.path.join(LOG_DIR, LOG_FILE_NAME)
-    parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = plots_fr_pointnet2.load_original_training_log_pointnet2(path_file=path_log_file)
-
-    title = 'PointNet++ training on FRGCv2 (133 classes) - Classification (1:N)'
-    subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ')
-    # path_image = './training_history.png'
-    path_image = '/'.join(path_log_file.split('/')[:-1]) + '/training_history_from_log_file.png'
-    print 'Saving training history:', path_image
-    plots_fr_pointnet2.plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
-
-
-# Bernardo
-def plot_classification_training_history_dataset_SyntheticFaces():
-    path_log_file = os.path.join(LOG_DIR, LOG_FILE_NAME)
-    parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = plots_fr_pointnet2.load_original_training_log_pointnet2(path_file=path_log_file)
-
-    title = 'PointNet++ training on SyntheticFaces (100 classes) - Classification (1:N)'
-    subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ')
-    # path_image = './training_history.png'
-    path_image = '/'.join(path_log_file.split('/')[:-1]) + '/training_history_from_log_file.png'
-    print 'Saving training history:', path_image
-    plots_fr_pointnet2.plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
-
-
-# Bernardo
 def plot_classification_training_history():
-    if FLAGS.dataset.upper() == 'frgc'.upper() or FLAGS.dataset.upper() == 'frgcv2'.upper():
-        plot_classification_training_history_dataset_FRGCv2()
-    elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
-        plot_classification_training_history_dataset_SyntheticFaces()
+    path_log_file = os.path.join(LOG_DIR, LOG_FILE_NAME)
+    parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = plots_fr_pointnet2.load_original_training_log_pointnet2(path_file=path_log_file)
 
+    if FLAGS.dataset.upper() == 'frgc'.upper() or FLAGS.dataset.upper() == 'frgcv2'.upper():
+        title = 'PointNet++ training on FRGCv2 ('+str(NUM_CLASSES)+' classes) - Classification (1:N)'    
+    elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
+        title = 'PointNet++ training on SyntheticFaces ('+str(NUM_CLASSES)+' classes) - Classification (1:N)'    
+    elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
+        title = 'PointNet++ training on LFW-Reconst3D-MICA ('+str(NUM_CLASSES)+' classes) - Classification (1:N)'
+    
+    subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ')
+    # path_image = './training_history.png'
+    path_image = '/'.join(path_log_file.split('/')[:-1]) + '/training_history_from_log_file.png'
+    print 'Saving training history:', path_image
+    plots_fr_pointnet2.plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
 
 
 

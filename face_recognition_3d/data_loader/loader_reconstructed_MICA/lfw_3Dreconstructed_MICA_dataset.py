@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 
-from math import floor
+from math import ceil, floor
 import os
 import os.path
 import json
@@ -15,8 +15,9 @@ ROOT_DIR = BASE_DIR
 sys.path.append(os.path.join(ROOT_DIR, '../../../utils'))
 import provider
 import struct
+from plyfile import PlyData
 
-from tree_synthetic_faces import TreeSyntheticFacesGPMM
+from tree_lfw_3Dreconstructed_MICA import TreeLFW_3DReconstructedMICA
 
 def pc_normalize(pc):
     # Bernardo
@@ -31,18 +32,20 @@ def pc_normalize(pc):
 
     return pc
 
-class TreeSyntheticFacesGPMM_Dataset():
-    def __init__(self, root, batch_size = 32, npoints = 1024, num_classes=100, num_expressions=50, split='train', normalize=True, normal_channel=False, modelnet10=False, cache_size=15000, shuffle=None):
+class LFR_3D_Reconstructed_MICA_Dataset():
+    def __init__(self, root, batch_size = 32, npoints = 1024, min_samples=3, split='train', normalize=True, normal_channel=False, modelnet10=False, cache_size=15000, shuffle=None):
         self.root = root
         self.batch_size = batch_size
         self.npoints = npoints
         self.normalize = normalize
 
-        # TODO: CONTINUE FROM HERE
         # Bernardo
-        pc_subjects_paths, unique_subjects_names = TreeSyntheticFacesGPMM().get_pointclouds_paths_with_subjects_names(dir_path=self.root, num_classes=num_classes, num_expressions=num_expressions)
-        # print('synthetic_faces_gpmm_dataset.py: TreeSyntheticFacesGPMM_Dataset(): __init__(): pc_subjects_paths =', pc_subjects_paths)
-        # print('unique_subjects_names:', unique_subjects_names)        
+        file_ext = '.ply'
+        subjects_with_pc_paths, unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().load_filter_organize_pointclouds_paths(self.root, file_ext, min_samples)
+        assert len(unique_subjects_names) == len(samples_per_subject)
+        # for subj_pc_path in subjects_with_pc_paths:
+        #     print('subj_pc_path:', subj_pc_path)
+        # sys.exit(0)
 
         self.cat = unique_subjects_names    # Bernardo
         self.classes = dict(zip(self.cat, range(len(self.cat))))  
@@ -53,19 +56,48 @@ class TreeSyntheticFacesGPMM_Dataset():
 
         # Bernardo
         assert(split=='train' or split=='test')
-        amount_train_samples_per_expr = int(floor(num_expressions * 0.8))
-        amount_test_samples_per_expr  = num_expressions - amount_train_samples_per_expr
         self.datapath = []
 
-        if split=='train':            
-            for c in range(len(unique_subjects_names)):
-                #print('train indexes:', c*num_expressions, ':', c*num_expressions+amount_train_samples_per_expr)
-                self.datapath += pc_subjects_paths[c*num_expressions:c*num_expressions+amount_train_samples_per_expr]
-
+        if split=='train':
+            last_index = 0
+            for samp_per_subj, uniq_subj_name in zip(samples_per_subject, unique_subjects_names):
+                amount_train_samples_subj = int(floor(samp_per_subj * 0.8))
+                train_subj_with_paths = []
+                for i in range(last_index, len(subjects_with_pc_paths)):
+                    if subjects_with_pc_paths[i][0] == uniq_subj_name:
+                        train_subj_with_paths.append(subjects_with_pc_paths[i])
+                        if len(train_subj_with_paths) == amount_train_samples_subj:
+                            last_index = i
+                            break
+                assert len(train_subj_with_paths) == amount_train_samples_subj
+                self.datapath += train_subj_with_paths
+                # for tswp in train_subj_with_paths:
+                #     print('train_subj_with_paths:', tswp)
+                # for dp in self.datapath:
+                #     print('self.datapath:', dp)
+                # raw_input('PAUSED...')
+                # print('------------------')
+                
         elif split=='test':
-            for c in range(len(unique_subjects_names)):
-                # print('test indexes:', c*num_expressions+amount_train_samples_per_expr, ':', (c+1)*num_expressions)
-                self.datapath += pc_subjects_paths[c*num_expressions+amount_train_samples_per_expr:(c+1)*num_expressions]
+            last_index = 0
+            for samp_per_subj, uniq_subj_name in zip(samples_per_subject, unique_subjects_names):
+                amount_train_samples_subj = int(floor(samp_per_subj * 0.8))
+                amount_test_samples_subj = samp_per_subj - amount_train_samples_subj
+                test_subj_with_paths = []
+                for i in range(last_index+amount_train_samples_subj, len(subjects_with_pc_paths)):
+                    if subjects_with_pc_paths[i][0] == uniq_subj_name:
+                        test_subj_with_paths.append(subjects_with_pc_paths[i])
+                        if len(test_subj_with_paths) == amount_test_samples_subj:
+                            last_index = i+1
+                            break
+                assert len(test_subj_with_paths) == amount_test_samples_subj
+                self.datapath += test_subj_with_paths
+                # for tswp in test_subj_with_paths:
+                #     print('test_subj_with_paths:', tswp)
+                # for dp in self.datapath:
+                #     print('self.datapath:', dp)
+                # raw_input('PAUSED...')
+                # print('------------------')
         
         self.cache_size = cache_size # how many data points to cache in memory
         self.cache = {} # from index to (point_set, cls) tuple
@@ -94,14 +126,21 @@ class TreeSyntheticFacesGPMM_Dataset():
         return provider.shuffle_points(rotated_data)
 
 
-    def _readbcn(self, file):
-        npoints = os.path.getsize(file) // 4
-        with open(file,'rb') as f:
-            raw_data = struct.unpack('f'*npoints,f.read(npoints*4))
-            data = np.asarray(raw_data,dtype=np.float32)       
-        # data = data.reshape(7, len(data)//7)   # original
-        data = data.reshape(3, len(data)//3).T   # Bernardo
-        return data                        # Bernardo    
+    def _readply(self, file):
+        with open(file, 'rb') as f:
+            plydata = PlyData.read(f)
+            num_verts = plydata['vertex'].count
+            vertices = np.zeros(shape=(num_verts, 3), dtype=np.float32)
+            vertices[:,0] = plydata['vertex'].data['x']
+            vertices[:,1] = plydata['vertex'].data['y']
+            vertices[:,2] = plydata['vertex'].data['z']
+            # vertices[:,3] = plydata['vertex'].data['red']
+            # vertices[:,4] = plydata['vertex'].data['green']
+            # vertices[:,5] = plydata['vertex'].data['blue']
+            # print('plydata:', plydata)
+            # print('vertices:', vertices)
+            # sys.exit(0)
+            return vertices
 
 
     def _get_item(self, index): 
@@ -113,11 +152,11 @@ class TreeSyntheticFacesGPMM_Dataset():
             cls = np.array([cls]).astype(np.int32)
 
             # Bernardo
-            print('synthetic_faces_gpmm_dataset.py: _get_item(): loading file:', fn[1])
+            print('lfw_3Dreconstructed_MICA_dataset.py: _get_item(): loading file:', fn[1])
 
             # point_set = np.loadtxt(fn[1],delimiter=',').astype(np.float32)   # original
             # point_set = np.load(fn[1]).astype(np.float32)                    # Bernardo
-            point_set = self._readbcn(fn[1]).astype(np.float32)                 # Bernardo
+            point_set = self._readply(fn[1]).astype(np.float32)                 # Bernardo
 
             # Bernardo
             if point_set.shape[1] == 7:        # if contains curvature
