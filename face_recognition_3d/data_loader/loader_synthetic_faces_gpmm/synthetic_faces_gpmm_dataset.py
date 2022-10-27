@@ -31,7 +31,7 @@ def pc_normalize(pc):
 
     return pc
 
-class TreeSyntheticFacesGPMM_Dataset():
+class SyntheticFacesGPMM_Dataset():
     def __init__(self, root, batch_size = 32, npoints = 1024, num_classes=100, num_expressions=50, split='train', normalize=True, normal_channel=False, modelnet10=False, cache_size=15000, shuffle=None):
         self.root = root
         self.batch_size = batch_size

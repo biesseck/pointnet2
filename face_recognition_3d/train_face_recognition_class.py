@@ -102,8 +102,8 @@ elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
     DATA_PATH = os.path.join(ROOT_DIR, '../../3DFacePointCloudNet/Data/TrainData')
     n_classes = 100
     n_expressions = 10
-    TRAIN_DATASET = synthetic_faces_gpmm_dataset.TreeSyntheticFacesGPMM_Dataset(root=DATA_PATH, npoints=NUM_POINT, num_classes=n_classes, num_expressions=n_expressions, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
-    TEST_DATASET  = synthetic_faces_gpmm_dataset.TreeSyntheticFacesGPMM_Dataset(root=DATA_PATH, npoints=NUM_POINT, num_classes=n_classes, num_expressions=n_expressions, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    TRAIN_DATASET = synthetic_faces_gpmm_dataset.SyntheticFacesGPMM_Dataset(root=DATA_PATH, npoints=NUM_POINT, num_classes=n_classes, num_expressions=n_expressions, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    TEST_DATASET  = synthetic_faces_gpmm_dataset.SyntheticFacesGPMM_Dataset(root=DATA_PATH, npoints=NUM_POINT, num_classes=n_classes, num_expressions=n_expressions, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
 
 # else:
 #     assert(NUM_POINT<=2048)
