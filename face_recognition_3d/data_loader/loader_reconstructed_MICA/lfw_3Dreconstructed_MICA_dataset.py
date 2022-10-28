@@ -40,7 +40,9 @@ class LFR_3D_Reconstructed_MICA_Dataset():
         self.normalize = normalize
 
         # Bernardo
-        file_ext = '.ply'
+        # file_ext = '.ply'
+        file_ext = '_centralized-nosetip_with-normals_filter-radius=100.npy'
+        # file_ext = '_upsample_MetaPU_centralized-nosetip_with-normals_filter-radius=100.npy'
         subjects_with_pc_paths, unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().load_filter_organize_pointclouds_paths(self.root, file_ext, min_samples)
         assert len(unique_subjects_names) == len(samples_per_subject)
         # for subj_pc_path in subjects_with_pc_paths:
@@ -155,8 +157,10 @@ class LFR_3D_Reconstructed_MICA_Dataset():
             print('lfw_3Dreconstructed_MICA_dataset.py: _get_item(): loading file:', fn[1])
 
             # point_set = np.loadtxt(fn[1],delimiter=',').astype(np.float32)   # original
-            # point_set = np.load(fn[1]).astype(np.float32)                    # Bernardo
-            point_set = self._readply(fn[1]).astype(np.float32)                 # Bernardo
+            if fn[1].endswith('.npy'):
+                point_set = np.load(fn[1]).astype(np.float32)                    # Bernardo
+            elif fn[1].endswith('.ply'):
+                point_set = self._readply(fn[1]).astype(np.float32)            # Bernardo
 
             # Bernardo
             if point_set.shape[1] == 7:        # if contains curvature

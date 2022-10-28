@@ -43,9 +43,10 @@ parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU
 parser.add_argument('--model', default='pointnet2_cls_ssg', help='Model name [default: pointnet2_cls_ssg]')
 parser.add_argument('--log_dir', default='log_face_recognition', help='Log dir [default: log]')
 # parser.add_argument('--num_point', type=int, default=1024, help='Point Number [default: 1024]')    # original
-parser.add_argument('--num_point', type=int, default=5023, help='Point Number [default: 1024]')     # Bernardo (FRGCv2)
+parser.add_argument('--num_point', type=int, default=5500, help='Point Number [default: 1024]')      # Bernardo
 parser.add_argument('--max_epoch', type=int, default=251, help='Epoch to run [default: 251]')
-parser.add_argument('--batch_size', type=int, default=16, help='Batch Size during training [default: 16]')
+# parser.add_argument('--batch_size', type=int, default=16, help='Batch Size during training [default: 16]')  # original
+parser.add_argument('--batch_size', type=int, default=32, help='Batch Size during training [default: 32]')    # Bernardo
 parser.add_argument('--learning_rate', type=float, default=0.001, help='Initial learning rate [default: 0.001]')
 parser.add_argument('--momentum', type=float, default=0.9, help='Initial learning rate [default: 0.9]')
 parser.add_argument('--optimizer', default='adam', help='adam or momentum [default: adam]')
@@ -85,6 +86,9 @@ os.system('cp train_face_recognition_class.py %s' % (LOG_DIR)) # bkp of train pr
 LOG_FILE_NAME = 'log_train.txt'
 LOG_FOUT = open(os.path.join(LOG_DIR, LOG_FILE_NAME), 'w')
 LOG_FOUT.write(str(FLAGS)+'\n')
+
+TRAIN_SAMPLES_FILE_NAME = 'samples_train.txt'
+TEST_SAMPLES_FILE_NAME  = 'samples_test.txt'
 
 BN_INIT_DECAY = 0.5
 BN_DECAY_DECAY_RATE = 0.5
@@ -126,6 +130,11 @@ elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
 # Bernardo
 assert TRAIN_DATASET.num_classes == TEST_DATASET.num_classes
 NUM_CLASSES = TRAIN_DATASET.num_classes
+
+def save_train_test_samples(samples_list, path_output_file):
+    with open(path_output_file, 'w') as file_handler:
+        for item in samples_list:
+            file_handler.write("{}\n".format(item))
 
 def log_string(out_str):
     LOG_FOUT.write(out_str+'\n')
@@ -357,6 +366,11 @@ def plot_classification_training_history():
 
 if __name__ == "__main__":
     log_string('pid: %s'%(str(os.getpid())))
+
+    # Bernardo
+    save_train_test_samples(TRAIN_DATASET.datapath, os.path.join(LOG_DIR, TRAIN_SAMPLES_FILE_NAME))
+    save_train_test_samples(TEST_DATASET.datapath, os.path.join(LOG_DIR, TEST_SAMPLES_FILE_NAME))
+
     train()
     LOG_FOUT.close()
 
