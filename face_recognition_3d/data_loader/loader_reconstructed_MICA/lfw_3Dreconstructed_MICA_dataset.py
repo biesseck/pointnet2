@@ -41,8 +41,8 @@ class LFR_3D_Reconstructed_MICA_Dataset():
 
         # Bernardo
         # file_ext = '.ply'
-        file_ext = '_centralized-nosetip_with-normals_filter-radius=100.npy'
-        # file_ext = '_upsample_MetaPU_centralized-nosetip_with-normals_filter-radius=100.npy'
+        file_ext = 'mesh_centralized-nosetip_with-normals_filter-radius=100.npy'
+        # file_ext = 'mesh_upsample_MetaPU_upsample_MetaPU_centralized-nosetip_with-normals_filter-radius=100.npy'
         subjects_with_pc_paths, unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().load_filter_organize_pointclouds_paths(self.root, file_ext, min_samples, max_samples)
         assert len(unique_subjects_names) == len(samples_per_subject)
         # for subj_pc_path in subjects_with_pc_paths:

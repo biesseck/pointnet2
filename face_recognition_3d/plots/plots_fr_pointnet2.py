@@ -49,7 +49,7 @@ def plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_a
     pyplot.clf()
 
     pyplot.subplot(211)
-    pyplot.suptitle(title, fontsize=12, fontweight='bold')
+    pyplot.suptitle(title, fontsize=11, fontweight='bold')
     pyplot.title(subtitle, fontsize=8)
     # pyplot.plot(history.history['loss'], label='train')
     # pyplot.plot(history.history['val_loss'], label='test')

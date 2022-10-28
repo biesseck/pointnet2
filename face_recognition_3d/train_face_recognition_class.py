@@ -44,7 +44,7 @@ parser.add_argument('--model', default='pointnet2_cls_ssg', help='Model name [de
 parser.add_argument('--log_dir', default='log_face_recognition', help='Log dir [default: log]')
 # parser.add_argument('--num_point', type=int, default=1024, help='Point Number [default: 1024]')    # original
 parser.add_argument('--num_point', type=int, default=2900, help='Point Number [default: 1024]')      # Bernardo
-parser.add_argument('--max_epoch', type=int, default=251, help='Epoch to run [default: 251]')
+parser.add_argument('--max_epoch', type=int, default=100, help='Epoch to run [default: 251]')
 # parser.add_argument('--batch_size', type=int, default=16, help='Batch Size during training [default: 16]')  # original
 parser.add_argument('--batch_size', type=int, default=32, help='Batch Size during training [default: 32]')    # Bernardo
 parser.add_argument('--learning_rate', type=float, default=0.001, help='Initial learning rate [default: 0.001]')
@@ -118,10 +118,20 @@ elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
 
 elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
     DATA_PATH = os.path.join(ROOT_DIR, '../../MICA/demo/output/lfw')
-    min_samples = 3
-    max_samples = 3
-    TRAIN_DATASET = lfw_3Dreconstructed_MICA_dataset.LFR_3D_Reconstructed_MICA_Dataset(root=DATA_PATH, npoints=NUM_POINT, min_samples=min_samples, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
-    TEST_DATASET  = lfw_3Dreconstructed_MICA_dataset.LFR_3D_Reconstructed_MICA_Dataset(root=DATA_PATH, npoints=NUM_POINT, min_samples=min_samples, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    
+    # min_samples = 3
+    # min_samples = 10
+    min_samples = 20
+    # min_samples = 50
+
+    # max_samples = -1
+    # max_samples = 3
+    # max_samples = 10
+    max_samples = 20
+    # max_samples = 50
+    
+    TRAIN_DATASET = lfw_3Dreconstructed_MICA_dataset.LFR_3D_Reconstructed_MICA_Dataset(root=DATA_PATH, npoints=NUM_POINT, min_samples=min_samples, max_samples=max_samples, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    TEST_DATASET  = lfw_3Dreconstructed_MICA_dataset.LFR_3D_Reconstructed_MICA_Dataset(root=DATA_PATH, npoints=NUM_POINT, min_samples=min_samples, max_samples=max_samples, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
 
 # else:
 #     assert(NUM_POINT<=2048)

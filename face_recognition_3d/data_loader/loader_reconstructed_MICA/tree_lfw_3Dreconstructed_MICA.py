@@ -66,15 +66,18 @@ class TreeLFW_3DReconstructedMICA:
         filtered_pc_subjects = []
         filtered_subjects_names = []
         filtered_samples_per_subject = []
-        # for i, pc_path, pc_subj in enumerate(all_pc_paths, all_pc_subjects):
+        selected_samples_per_subject = [0] * len(unique_subjects_names)
         for i, pc_path, pc_subj in zip(range(len(all_pc_paths)), all_pc_paths, all_pc_subjects):
             if samples_per_subject[unique_subjects_names.index(pc_subj)] >= min_samples and \
-               (max_samples == -1 or samples_per_subject[unique_subjects_names.index(pc_subj)] <= max_samples):
+               (max_samples==-1 or selected_samples_per_subject[unique_subjects_names.index(pc_subj)] < max_samples):
                 filtered_pc_paths.append(pc_path)
                 filtered_pc_subjects.append(pc_subj)
-                if not pc_subj in filtered_subjects_names:
+                if not pc_subj in filtered_subjects_names:   # run once per subject
                     filtered_subjects_names.append(pc_subj)
-                    filtered_samples_per_subject.append(samples_per_subject[unique_subjects_names.index(pc_subj)])
+                selected_samples_per_subject[unique_subjects_names.index(pc_subj)] += 1
+        # filtered_samples_per_subject.append(samples_per_subject[unique_subjects_names.index(pc_subj)])
+        filtered_samples_per_subject = [selected_samples_per_subject[unique_subjects_names.index(pc_subj)] for pc_subj in filtered_subjects_names]
+        # print('selected_samples_per_subject:', selected_samples_per_subject)      
         return filtered_pc_paths, filtered_pc_subjects, filtered_subjects_names, filtered_samples_per_subject
 
     def load_filter_organize_pointclouds_paths(self, dir_path, pc_ext='.ply', min_samples=2, max_samples=-1):
@@ -83,6 +86,7 @@ class TreeLFW_3DReconstructedMICA:
         subjects_with_pc_paths = [()] * len(all_pc_paths)
         for i, pc_path, pc_subj in zip(range(len(all_pc_paths)), all_pc_paths, all_pc_subjects):
             subjects_with_pc_paths[i] = (pc_subj, pc_path)
+        # print('samples_per_subject:', samples_per_subject)
         return subjects_with_pc_paths, unique_subjects_names, samples_per_subject
 
 
