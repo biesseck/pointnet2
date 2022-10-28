@@ -97,6 +97,60 @@ def break_string(text, substring=', ', num_parts=3):
 
 
 
+def plot_samples_per_class_and_histogram(class_names, samples_per_class, log_scale=False, title='', subtitle='', path_image='.', show_fig=False, save_fig=False):
+    pyplot.clf()
+
+    sorted_class_by_samples = sorted(zip(samples_per_class, class_names), reverse=True)
+    samples_per_class = np.array([num_samples for num_samples, _ in sorted_class_by_samples], dtype=np.int)
+    class_names       = [class_name  for _, class_name  in sorted_class_by_samples]
+    class_indexes     = range(len(samples_per_class))
+
+    x_divisions = 7
+    x_block = int(round(len(class_indexes)/7))
+    sampled_class_indexes = [class_indexes[i] for i in class_indexes if i%x_block==0]
+    sampled_class_names = [class_names[i] for i in class_indexes if i%x_block==0]
+    # for num_samples, class_name in sorted_class_by_samples:
+    #     print('class_name:', class_name, '    num_samples:', num_samples)
+
+    if title != '':
+        pyplot.suptitle(title, fontsize=12, fontweight='bold')
+    if subtitle != '':
+        pyplot.title(subtitle, fontsize=8)
+
+    pyplot.subplot(211)
+    # pyplot.bar(range(len(samples_per_class)), samples_per_class, color='red')
+    pyplot.plot(class_indexes, samples_per_class, color='red')
+    pyplot.xticks(sampled_class_indexes, sampled_class_names, rotation=-15, fontsize=7, ha='left')
+    ylabel = '# Samples'
+    if log_scale:
+        pyplot.yscale('log')
+        ylabel += ' (log scale)'
+    pyplot.ylabel(ylabel)
+    # pyplot.ylim(0, np.max(samples_per_class)*1.25)
+    pyplot.xlabel('Subjects')
+    # pyplot.xlim(len(class_names)*-0.25, len(class_names)*1.25)
+    pyplot.legend()
+    
+    # plot accuracy during training
+    pyplot.subplot(212)
+    pyplot.hist(samples_per_class, bins=20, color='blue')
+    # pyplot.yscale('log')
+    ylabel = '# classes'
+    if log_scale:
+        pyplot.yscale('log')
+        ylabel += ' (log scale)'
+    pyplot.ylabel(ylabel)
+    pyplot.xlabel('Num samples per subject')
+    pyplot.legend()
+
+    pyplot.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.4, hspace=0.7)
+    
+    if save_fig:
+        pyplot.savefig(path_image)
+    if show_fig:
+        pyplot.show()
+ 
+
 
 if __name__ == '__main__':
 
@@ -110,7 +164,7 @@ if __name__ == '__main__':
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.005/log_train.txt']
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.01/log_train.txt']
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_10exp_lr=0.001_batch=32/log_train.txt']
-        sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_30exp_lr=0.001_batch=64/log_train.txt']
+        sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-27_LFW-3D-MICA-dataset_whole-head_minsamples=3_lr=0.001_batch=64/log_train.txt']
 
 
     args = parse_args()
@@ -119,7 +173,7 @@ if __name__ == '__main__':
 
     parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = load_original_training_log_pointnet2(path_file=args.input_path)
     
-    title = 'PointNet++ training on SyntheticFaces \nClassification (1:N) - 100 classes, 30 expr'
+    title = 'PointNet++ training on LFW-Reconst3D-MICA \nClassification (1:N) - 901 classes - min 3 samples'
     subtitle = 'Parameters: ' + break_string(parameters, substring=', ')
     path_image = '/'.join(args.input_path.split('/')[:-1]) + '/training_history_from_log_file.png'
     plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)

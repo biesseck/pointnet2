@@ -5,6 +5,11 @@ import os
 from glob import glob
 from pathlib import Path
 
+# print('os.path.dirname(os.path.abspath(__file__)):', os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+from plots import plots_fr_pointnet2
+
+
 # BERNARDO
 class TreeLFW_3DReconstructedMICA:
     '''
@@ -56,14 +61,15 @@ class TreeLFW_3DReconstructedMICA:
         unique_subjects_names, samples_per_subject = self.count_samples_per_subject(all_pc_paths, pc_ext)
         return all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject
 
-    def filter_paths_by_minimum_samples(self, all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, pc_ext='.ply', min_samples=2):
+    def filter_paths_by_minimum_samples(self, all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, pc_ext='.ply', min_samples=2, max_samples=-1):
         filtered_pc_paths = []
         filtered_pc_subjects = []
         filtered_subjects_names = []
         filtered_samples_per_subject = []
         # for i, pc_path, pc_subj in enumerate(all_pc_paths, all_pc_subjects):
         for i, pc_path, pc_subj in zip(range(len(all_pc_paths)), all_pc_paths, all_pc_subjects):
-            if samples_per_subject[unique_subjects_names.index(pc_subj)] >= min_samples:
+            if samples_per_subject[unique_subjects_names.index(pc_subj)] >= min_samples and \
+               (max_samples == -1 or samples_per_subject[unique_subjects_names.index(pc_subj)] <= max_samples):
                 filtered_pc_paths.append(pc_path)
                 filtered_pc_subjects.append(pc_subj)
                 if not pc_subj in filtered_subjects_names:
@@ -71,9 +77,9 @@ class TreeLFW_3DReconstructedMICA:
                     filtered_samples_per_subject.append(samples_per_subject[unique_subjects_names.index(pc_subj)])
         return filtered_pc_paths, filtered_pc_subjects, filtered_subjects_names, filtered_samples_per_subject
 
-    def load_filter_organize_pointclouds_paths(self, dir_path, pc_ext='.ply', min_samples=2):
+    def load_filter_organize_pointclouds_paths(self, dir_path, pc_ext='.ply', min_samples=2, max_samples=-1):
         all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject = self.get_all_pointclouds_paths_count(dir_path, pc_ext)
-        all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject = self.filter_paths_by_minimum_samples(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, pc_ext, min_samples)
+        all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject = self.filter_paths_by_minimum_samples(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, pc_ext, min_samples, max_samples)
         subjects_with_pc_paths = [()] * len(all_pc_paths)
         for i, pc_path, pc_subj in zip(range(len(all_pc_paths)), all_pc_paths, all_pc_subjects):
             subjects_with_pc_paths[i] = (pc_subj, pc_path)
@@ -115,8 +121,17 @@ class TreeLFW_3DReconstructedMICA:
 
 if __name__ == '__main__':
     dataset_path = '/home/bjgbiesseck/GitHub/MICA/demo/output/lfw'
+    
     file_ext='.ply'
-    min_samples=3
+    
+    min_samples=1
+    # min_samples=3
+
+    max_samples=-1
+    # max_samples=100
+
+    log_scale = True
+    # log_scale = False
 
     # all_pc_paths, all_pc_subjects = TreeLFW_3DReconstructedMICA().get_all_pointclouds_paths(dir_path=dataset_path, pc_ext=file_ext)
     # unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().count_samples_per_subject(all_pc_paths, pc_ext=file_ext)
@@ -125,8 +140,9 @@ if __name__ == '__main__':
     # for i, unique_subj_name in enumerate(unique_subjects_names):
     #     print('unique_subj_name', unique_subj_name, '    samples_per_subject:', samples_per_subject[i])
     # sys.exit(0)
-
-    all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().get_all_pointclouds_paths_count(dataset_path, file_ext)
+    
+    # print('Searching all files ending with \'' + file_ext + '\'...')
+    # all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().get_all_pointclouds_paths_count(dataset_path, file_ext)
     # # for pc_path, pc_subject in zip(all_pc_paths, all_pc_subjects):
     # #     print('pc_path:', pc_path, '    pc_subject:', pc_subject)
     # # sys.exit(0)
@@ -134,16 +150,25 @@ if __name__ == '__main__':
     # #     print('unique_subj_name:', unique_subj_name, '    samples_per_subj:', samples_per_subj)
     # # sys.exit(0)
 
-    all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().filter_paths_by_minimum_samples(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, file_ext, min_samples)
-    # for pc_path, pc_subject in zip(all_pc_paths, all_pc_subjects):
-    #     print('pc_path:', pc_path, '    pc_subject:', pc_subject)
-    # sys.exit(0)
-    # for unique_subj_name, samples_per_subj in zip(unique_subjects_names, samples_per_subject):
-    #     print('unique_subj_name:', unique_subj_name, '    samples_per_subj:', samples_per_subj)
-    # print('len(unique_subj_name):', len(unique_subjects_names), '    len(samples_per_subj):', len(samples_per_subject))
-    # sys.exit(0)
+    # print('Searching all files ending with \'' + file_ext + '\'...')
+    # all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().filter_paths_by_minimum_samples(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, file_ext, min_samples)
+    # # for pc_path, pc_subject in zip(all_pc_paths, all_pc_subjects):
+    # #     print('pc_path:', pc_path, '    pc_subject:', pc_subject)
+    # # sys.exit(0)
+    # # for unique_subj_name, samples_per_subj in zip(unique_subjects_names, samples_per_subject):
+    # #     print('unique_subj_name:', unique_subj_name, '    samples_per_subj:', samples_per_subj)
+    # # print('len(unique_subj_name):', len(unique_subjects_names), '    len(samples_per_subj):', len(samples_per_subject))
+    # # sys.exit(0)
+    
+    print('Searching all files ending with \'' + file_ext + '\'...')
+    subjects_with_pc_paths, unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().load_filter_organize_pointclouds_paths(dataset_path, file_ext, min_samples, max_samples)
+    # for subj_pc_path in subjects_with_pc_paths:
+    #     print('subj_pc_path:', subj_pc_path)
+    # # sys.exit(0)
 
-    subjects_with_pc_paths, unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().load_filter_organize_pointclouds_paths(dataset_path, file_ext, min_samples)
-    for subj_pc_path in subjects_with_pc_paths:
-        print('subj_pc_path:', subj_pc_path)
-    # sys.exit(0)
+    # unique_subjects_names = ['AAAAA', 'BBBB', 'CCCC', 'DDDD']
+    # samples_per_subject = [5, 2, 2, 1]
+    title = 'Dataset LFW - Samples per Subject'
+    path_image = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/samples_per_subject_lfw_dataset.png'
+    plots_fr_pointnet2.plot_samples_per_class_and_histogram(unique_subjects_names, samples_per_subject, log_scale, title=title, subtitle='', path_image=path_image, show_fig=False, save_fig=True)
+    
