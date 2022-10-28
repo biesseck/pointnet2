@@ -43,7 +43,7 @@ parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU
 parser.add_argument('--model', default='pointnet2_cls_ssg', help='Model name [default: pointnet2_cls_ssg]')
 parser.add_argument('--log_dir', default='log_face_recognition', help='Log dir [default: log]')
 # parser.add_argument('--num_point', type=int, default=1024, help='Point Number [default: 1024]')    # original
-parser.add_argument('--num_point', type=int, default=5500, help='Point Number [default: 1024]')      # Bernardo
+parser.add_argument('--num_point', type=int, default=2900, help='Point Number [default: 1024]')      # Bernardo
 parser.add_argument('--max_epoch', type=int, default=251, help='Epoch to run [default: 251]')
 # parser.add_argument('--batch_size', type=int, default=16, help='Batch Size during training [default: 16]')  # original
 parser.add_argument('--batch_size', type=int, default=32, help='Batch Size during training [default: 32]')    # Bernardo
@@ -119,6 +119,7 @@ elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
 elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
     DATA_PATH = os.path.join(ROOT_DIR, '../../MICA/demo/output/lfw')
     min_samples = 3
+    max_samples = 3
     TRAIN_DATASET = lfw_3Dreconstructed_MICA_dataset.LFR_3D_Reconstructed_MICA_Dataset(root=DATA_PATH, npoints=NUM_POINT, min_samples=min_samples, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
     TEST_DATASET  = lfw_3Dreconstructed_MICA_dataset.LFR_3D_Reconstructed_MICA_Dataset(root=DATA_PATH, npoints=NUM_POINT, min_samples=min_samples, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
 
@@ -354,7 +355,7 @@ def plot_classification_training_history():
     elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
         title = 'PointNet++ training on SyntheticFaces \nClassification (1:N) - '+str(NUM_CLASSES)+' classes - '+str(n_expressions)+' expressions'
     elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
-        title = 'PointNet++ training on LFW-Reconst3D-MICA \nClassification (1:N) - '+str(NUM_CLASSES)+' classes - min '+str(min_samples)+' samples'
+        title = 'PointNet++ training on LFW-Reconst3D-MICA \nClassification (1:N) - '+str(NUM_CLASSES)+' classes - min_samples='+str(min_samples)+' - max_samples='+str(max_samples)
     
     subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ')
     # path_image = './training_history.png'
