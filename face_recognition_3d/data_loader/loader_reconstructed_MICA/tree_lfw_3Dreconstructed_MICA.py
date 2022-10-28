@@ -127,8 +127,8 @@ if __name__ == '__main__':
     min_samples=1
     # min_samples=3
 
-    max_samples=-1
-    # max_samples=100
+    # max_samples=-1
+    max_samples=100
 
     log_scale = True
     # log_scale = False
@@ -169,6 +169,7 @@ if __name__ == '__main__':
     # unique_subjects_names = ['AAAAA', 'BBBB', 'CCCC', 'DDDD']
     # samples_per_subject = [5, 2, 2, 1]
     title = 'Dataset LFW - Samples per Subject'
-    path_image = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/samples_per_subject_lfw_dataset.png'
-    plots_fr_pointnet2.plot_samples_per_class_and_histogram(unique_subjects_names, samples_per_subject, log_scale, title=title, subtitle='', path_image=path_image, show_fig=False, save_fig=True)
+    subtitle = '(min_samples='+str(min_samples)+', max_samples='+str(max_samples)+')'
+    path_image = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/samples_per_subject_lfw_dataset_minsamples='+str(min_samples)+'_maxsamples='+str(max_samples)+'.png'
+    plots_fr_pointnet2.plot_samples_per_class_and_histogram(unique_subjects_names, samples_per_subject, log_scale, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
     

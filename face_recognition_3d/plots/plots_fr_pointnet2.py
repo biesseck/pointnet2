@@ -106,19 +106,18 @@ def plot_samples_per_class_and_histogram(class_names, samples_per_class, log_sca
     class_indexes     = range(len(samples_per_class))
 
     x_divisions = 7
-    x_block = int(round(len(class_indexes)/7))
+    x_block = int(round(len(class_indexes)/x_divisions))
     sampled_class_indexes = [class_indexes[i] for i in class_indexes if i%x_block==0]
     sampled_class_names = [class_names[i] for i in class_indexes if i%x_block==0]
     # for num_samples, class_name in sorted_class_by_samples:
     #     print('class_name:', class_name, '    num_samples:', num_samples)
-
+    
     if title != '':
         pyplot.suptitle(title, fontsize=12, fontweight='bold')
+    
+    pyplot.subplot(211)
     if subtitle != '':
         pyplot.title(subtitle, fontsize=8)
-
-    pyplot.subplot(211)
-    # pyplot.bar(range(len(samples_per_class)), samples_per_class, color='red')
     pyplot.plot(class_indexes, samples_per_class, color='red')
     pyplot.xticks(sampled_class_indexes, sampled_class_names, rotation=-15, fontsize=7, ha='left')
     ylabel = '# Samples'
