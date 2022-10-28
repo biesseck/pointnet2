@@ -86,37 +86,6 @@ class TreeLFW_3DReconstructedMICA:
         return subjects_with_pc_paths, unique_subjects_names, samples_per_subject
 
 
-    '''
-    def get_pointclouds_paths(self, dir_path, num_classes=1000, num_expressions=50, pc_ext='.ply'):
-        all_sub_folders = self.get_all_sub_folders(dir_path)[1:]
-        pc_paths = [[]] * num_classes
-        for i in range(num_classes):
-            sub_folder_pointcloud = all_sub_folders[i]
-            paths_one_folder = sorted(glob.glob(sub_folder_pointcloud + '/*' + pc_ext))
-            pc_paths[i] = paths_one_folder[:num_expressions]
-        return pc_paths
-
-    def get_pointclouds_paths_with_subjects_names(self, dir_path, num_classes=1000, num_expressions=50, pc_ext='.ply'):
-        assert num_classes > 0 and num_classes <= 10000 and num_expressions > 0 and num_expressions <= 50
-        all_sub_folders = self.get_all_sub_folders(dir_path)[1:]
-        pc_paths = [[]] * num_classes
-        subjects_names = [[]] * num_classes
-        unique_subjects_names = [''] * num_classes
-        for i in range(num_classes):
-            sub_folder_pointcloud = all_sub_folders[i]
-            paths_one_folder = sorted(sorted(glob.glob(sub_folder_pointcloud + '/*' + pc_ext)))
-            pc_paths[i] = paths_one_folder[:num_expressions]
-            subject_name = paths_one_folder[0].split('/')[-2]
-            subjects_names[i] = [subject_name] * num_expressions
-            unique_subjects_names[i] = subject_name
-        
-        pc_subjects_paths = []
-        for i in range(num_classes):
-            for j in range(len(pc_paths[i])):
-                pc_subjects_paths.append((subjects_names[i][j], pc_paths[i][j]))
-        return pc_subjects_paths, unique_subjects_names
-    '''
-
 
 
 if __name__ == '__main__':
