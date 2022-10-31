@@ -89,7 +89,39 @@ class TreeLFW_3DReconstructedMICA:
         # print('samples_per_subject:', samples_per_subject)
         return subjects_with_pc_paths, unique_subjects_names, samples_per_subject
 
+    def load_pairs_samples_protocol_from_file(self, protocol_file_path='pairsDevTrain.txt', dataset_path='', file_ext='.ply'):
+        pos_pair_label = 1
+        neg_pair_label = 0
+        all_pos_pairs_paths = []
+        all_neg_pairs_paths = []
 
+        with open(protocol_file_path, 'r') as fp:
+            all_lines = [line.rstrip('\n') for line in fp.readlines()]
+            # print('all_lines:', all_lines)
+            num_pos_pairs = int(all_lines[0])
+            for i in range(1, num_pos_pairs+1):
+                pos_pair = all_lines[i].split('\t')   # Aaron_Peirsol	1	2
+                # print('pos_pair:', pos_pair)
+                subj_name, index1, index2 = pos_pair
+                path_sample1 = glob(os.path.join(dataset_path, subj_name, subj_name+'_'+index1.zfill(4), '*'+file_ext))[0]
+                path_sample2 = glob(os.path.join(dataset_path, subj_name, subj_name+'_'+index2.zfill(4), '*'+file_ext))[0]
+                # pos_pair = (subj_name, pos_pair_label, path_sample1, path_sample2)
+                pos_pair = (pos_pair_label, path_sample1, path_sample2)
+                all_pos_pairs_paths.append(pos_pair)
+                # print('path_sample1:', path_sample1)
+                # print('path_sample2:', path_sample2)
+                # print('pos_pair:', pos_pair)
+
+            for i in range(num_pos_pairs+1, len(all_lines)):
+                neg_pair = all_lines[i].split('\t')   # AJ_Cook	1	Marsha_Thomason	1
+                # print('neg_pair:', neg_pair)
+                subj_name1, index1, subj_name2, index2 = neg_pair
+                path_sample1 = glob(os.path.join(dataset_path, subj_name1, subj_name1+'_'+index1.zfill(4), '*'+file_ext))[0]
+                path_sample2 = glob(os.path.join(dataset_path, subj_name2, subj_name2+'_'+index2.zfill(4), '*'+file_ext))[0]
+                neg_pair = (neg_pair_label, path_sample1, path_sample2)
+                all_neg_pairs_paths.append(neg_pair)
+                # sys.exit(0)
+            return all_pos_pairs_paths, all_neg_pairs_paths
 
 
 if __name__ == '__main__':
@@ -100,8 +132,8 @@ if __name__ == '__main__':
     min_samples=1
     # min_samples=3
 
-    # max_samples=-1
-    max_samples=100
+    max_samples=-1
+    # max_samples=100
 
     log_scale = True
     # log_scale = False
@@ -133,16 +165,24 @@ if __name__ == '__main__':
     # # print('len(unique_subj_name):', len(unique_subjects_names), '    len(samples_per_subj):', len(samples_per_subject))
     # # sys.exit(0)
     
-    print('Searching all files ending with \'' + file_ext + '\'...')
-    subjects_with_pc_paths, unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().load_filter_organize_pointclouds_paths(dataset_path, file_ext, min_samples, max_samples)
-    # for subj_pc_path in subjects_with_pc_paths:
-    #     print('subj_pc_path:', subj_pc_path)
-    # # sys.exit(0)
+    # print('Searching all files ending with \'' + file_ext + '\'...')
+    # subjects_with_pc_paths, unique_subjects_names, samples_per_subject = TreeLFW_3DReconstructedMICA().load_filter_organize_pointclouds_paths(dataset_path, file_ext, min_samples, max_samples)
+    # # for subj_pc_path in subjects_with_pc_paths:
+    # #     print('subj_pc_path:', subj_pc_path)
+    # # # sys.exit(0)
 
-    # unique_subjects_names = ['AAAAA', 'BBBB', 'CCCC', 'DDDD']
-    # samples_per_subject = [5, 2, 2, 1]
-    title = 'Dataset LFW - Samples per Subject'
-    subtitle = '(min_samples='+str(min_samples)+', max_samples='+str(max_samples)+')'
-    path_image = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/samples_per_subject_lfw_dataset_minsamples='+str(min_samples)+'_maxsamples='+str(max_samples)+'.png'
-    plots_fr_pointnet2.plot_samples_per_class_and_histogram(unique_subjects_names, samples_per_subject, log_scale, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
+    # # unique_subjects_names = ['AAAAA', 'BBBB', 'CCCC', 'DDDD']
+    # # samples_per_subject = [5, 2, 2, 1]
+    # title = 'Dataset LFW - Samples per Subject'
+    # subtitle = '(min_samples='+str(min_samples)+', max_samples='+str(max_samples)+')'
+    # path_image = '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/samples_per_subject_lfw_dataset_minsamples='+str(min_samples)+'_maxsamples='+str(max_samples)+'.png'
+    # plots_fr_pointnet2.plot_samples_per_class_and_histogram(unique_subjects_names, samples_per_subject, log_scale, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
     
+    protocol_file_path = '/home/bjgbiesseck/GitHub/MICA/demo/output/lfw/pairsDevTrain.txt'
+    all_pos_pairs_paths, all_neg_pairs_paths = TreeLFW_3DReconstructedMICA().load_pairs_samples_protocol_from_file(protocol_file_path, dataset_path, file_ext)
+    # for pos_pairs in all_pos_pairs_paths:
+    #     print('pos_pairs:', pos_pairs)
+    # sys.exit(0)
+    # for neg_pairs in all_neg_pairs_paths:
+    #     print('neg_pairs:', neg_pairs)
+    # sys.exit(0)
