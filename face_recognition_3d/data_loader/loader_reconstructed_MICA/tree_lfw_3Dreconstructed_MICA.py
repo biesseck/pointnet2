@@ -90,8 +90,8 @@ class TreeLFW_3DReconstructedMICA:
         return subjects_with_pc_paths, unique_subjects_names, samples_per_subject
 
     def load_pairs_samples_protocol_from_file(self, protocol_file_path='pairsDevTrain.txt', dataset_path='', file_ext='.ply'):
-        pos_pair_label = 1
-        neg_pair_label = 0
+        pos_pair_label = '1'
+        neg_pair_label = '0'
         all_pos_pairs_paths = []
         all_neg_pairs_paths = []
 
@@ -121,7 +121,7 @@ class TreeLFW_3DReconstructedMICA:
                 neg_pair = (neg_pair_label, path_sample1, path_sample2)
                 all_neg_pairs_paths.append(neg_pair)
                 # sys.exit(0)
-            return all_pos_pairs_paths, all_neg_pairs_paths
+            return all_pos_pairs_paths, all_neg_pairs_paths, pos_pair_label, neg_pair_label
 
 
 if __name__ == '__main__':
@@ -179,10 +179,10 @@ if __name__ == '__main__':
     # plots_fr_pointnet2.plot_samples_per_class_and_histogram(unique_subjects_names, samples_per_subject, log_scale, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
     
     protocol_file_path = '/home/bjgbiesseck/GitHub/MICA/demo/output/lfw/pairsDevTrain.txt'
-    all_pos_pairs_paths, all_neg_pairs_paths = TreeLFW_3DReconstructedMICA().load_pairs_samples_protocol_from_file(protocol_file_path, dataset_path, file_ext)
-    # for pos_pairs in all_pos_pairs_paths:
-    #     print('pos_pairs:', pos_pairs)
-    # sys.exit(0)
+    all_pos_pairs_paths, all_neg_pairs_paths, pos_pair_label, neg_pair_label = TreeLFW_3DReconstructedMICA().load_pairs_samples_protocol_from_file(protocol_file_path, dataset_path, file_ext)
+    for pos_pairs in all_pos_pairs_paths:
+        print('pos_pairs:', pos_pairs)
+    sys.exit(0)
     # for neg_pairs in all_neg_pairs_paths:
     #     print('neg_pairs:', neg_pairs)
     # sys.exit(0)
