@@ -174,22 +174,8 @@ def get_loss(pred1, pred2, label, end_points1, end_points2):
 
 
 if __name__=='__main__':
-    # from tensorflow.keras import Model
-
+    
     with tf.Graph().as_default():
-        # # input1 = tf.zeros((32,1024,3))
-        # # input1 = tf.keras.layers.InputLayer(shape=(32,1024,3))
-        # input1 = tf.placeholder(tf.float32, shape=(32,1024,3))
-        # input1 = tf.keras.layers.InputLayer(name='x', input_tensor=input1)
-        # labels = tf.placeholder(tf.int32, shape=(32))
-        # output, _ = get_model(input1, tf.constant(True))
-        # print(output)
-
-        # # estimator = tf.estimator.Estimator(get_model)
-
-        # # loss = get_loss(output, labels, None)
-        # # print(loss)
-
         pointclouds_pl1, pointclouds_pl2, labels_pl = placeholder_inputs(batch_size=32, num_point=1024)
 
         is_training_pl = tf.placeholder(tf.bool, shape=())
@@ -208,28 +194,6 @@ if __name__=='__main__':
             with tf.control_dependencies([print_op]):
                 out = tf.add(pred, pred)
             sess.run(tf.global_variables_initializer())
-            '''
-            print('pred:', sess.run(pred, feed_dict={pointclouds_pl1: data2,
-                                                     pointclouds_pl2: data2,
-                                                     labels_pl: label,
-                                                     is_training_pl:True}))
-            print('individual_loss:', sess.run(individual_loss, feed_dict={pointclouds_pl1: data2,
-                                                     pointclouds_pl2: data2,
-                                                     labels_pl: label,
-                                                     is_training_pl:True}))
-            print('pred1:', sess.run(pred1, feed_dict={pointclouds_pl1: data2,
-                                                       pointclouds_pl2: data2,
-                                                       labels_pl: label,
-                                                       is_training_pl:True}))
-            print('pred2:', sess.run(pred2, feed_dict={pointclouds_pl1: data2,
-                                                       pointclouds_pl2: data2,
-                                                       labels_pl: label,
-                                                       is_training_pl:True}))
-            sess.run([pred2], feed_dict={pointclouds_pl1: data2,
-                                                       pointclouds_pl2: data2,
-                                                       labels_pl: label,
-                                                       is_training_pl:True})
-            '''
 
             pred, individual_loss, pred1, pred2 = sess.run([pred, individual_loss, pred1, pred2],
                                                      feed_dict={pointclouds_pl1: data2,
@@ -242,10 +206,4 @@ if __name__=='__main__':
             print('pred1:', pred1)
             print('pred2:', pred2)
             print('pred2.shape:', pred2.shape)
-
-        # out = tf.keras.layers.Dense(32, activation=tf.nn.softmax)(pred1)
-
-        # model = tf.keras.models.Model(inputs=[tf.layers.Input(tensor=pointclouds_pl1), tf.layers.Input(tensor=pointclouds_pl2)], outputs=out)
-        # # tf.keras.utils.plot_model(pred, to_file="my_model.png", show_shapes=True)
-
 
