@@ -26,32 +26,46 @@ def placeholder_inputs(batch_size, num_point):
 
 # Bernardo
 def get_backbone(pointclouds, is_training, bn_decay=None, reuse=False):
-    """ Classification PointNet, input is BxNx3, output Bx40 """
-    batch_size = pointclouds.get_shape()[0].value
-    num_point = pointclouds.get_shape()[1].value
-    end_points = {}
-    
-    l0_xyz = pointclouds
-    l0_points = None
-    end_points['l0_xyz'] = l0_xyz
+    with tf.name_scope("model"):
+        batch_size = pointclouds.get_shape()[0].value
+        num_point = pointclouds.get_shape()[1].value
+        end_points = {}
+        
+        l0_xyz = pointclouds
+        l0_points = None
+        end_points['l0_xyz'] = l0_xyz
 
-    # Set abstraction layers
-    # Note: When using NCHW for layer 2, we see increased GPU memory usage (in TF1.4).
-    # So we only use NCHW for layer 1 until this issue can be resolved.
-    l1_xyz, l1_points, l1_indices = pointnet_sa_module(l0_xyz, l0_points, npoint=512, radius=0.2, nsample=32, mlp=[64,64,128], mlp2=None, group_all=False, is_training=is_training, bn_decay=bn_decay, scope='layer1', use_nchw=True, reuse=reuse)
-    l2_xyz, l2_points, l2_indices = pointnet_sa_module(l1_xyz, l1_points, npoint=128, radius=0.4, nsample=64, mlp=[128,128,256], mlp2=None, group_all=False, is_training=is_training, bn_decay=bn_decay, scope='layer2', reuse=reuse)
-    l3_xyz, l3_points, l3_indices = pointnet_sa_module(l2_xyz, l2_points, npoint=None, radius=None, nsample=None, mlp=[256,512,1024], mlp2=None, group_all=True, is_training=is_training, bn_decay=bn_decay, scope='layer3', reuse=reuse)
+        with tf.variable_scope("pointnet_sa_module1") as scope:
+            # Set abstraction layers
+            # Note: When using NCHW for layer 2, we see increased GPU memory usage (in TF1.4).
+            # So we only use NCHW for layer 1 until this issue can be resolved.
+            l1_xyz, l1_points, l1_indices = pointnet_sa_module(l0_xyz, l0_points, npoint=512, radius=0.2, nsample=32, mlp=[64,64,128], mlp2=None, group_all=False, is_training=is_training, bn_decay=bn_decay, use_nchw=True, scope=scope, reuse=reuse)
+        
+        with tf.variable_scope("pointnet_sa_module2") as scope:
+            l2_xyz, l2_points, l2_indices = pointnet_sa_module(l1_xyz, l1_points, npoint=128, radius=0.4, nsample=64, mlp=[128,128,256], mlp2=None, group_all=False, is_training=is_training, bn_decay=bn_decay, scope=scope, reuse=reuse)
+        
+        with tf.variable_scope("pointnet_sa_module3") as scope:
+            l3_xyz, l3_points, l3_indices = pointnet_sa_module(l2_xyz, l2_points, npoint=None, radius=None, nsample=None, mlp=[256,512,1024], mlp2=None, group_all=True, is_training=is_training, bn_decay=bn_decay, scope=scope, reuse=reuse)
 
-    # Fully connected layers
-    net = tf.reshape(l3_points, [batch_size, -1])
-    net = tf_util_verif.fully_connected(net, 512, bn=True, is_training=is_training, scope='fc1', bn_decay=bn_decay, reuse=reuse)
-    net = tf_util_verif.dropout(net, keep_prob=0.5, is_training=is_training, scope='dp1', reuse=reuse)
-    net = tf_util_verif.fully_connected(net, 256, bn=True, is_training=is_training, scope='fc2', bn_decay=bn_decay, reuse=reuse)
-    net = tf_util_verif.dropout(net, keep_prob=0.5, is_training=is_training, scope='dp2', reuse=reuse)
+        # Fully connected layers
+        net = tf.reshape(l3_points, [batch_size, -1])
 
-    # net = tf_util.fully_connected(net, 40, activation_fn=None, scope='fc3')                            # original
-    # net = tf_util_verif.fully_connected(net, num_class, activation_fn=None, scope='fc3', reuse=reuse)  # Bernardo
-    net = tf_util_verif.fully_connected(net, 256, activation_fn=None, scope='fc3', reuse=reuse)          # Bernardo
+        with tf.variable_scope("fully_connected1") as scope:
+            net = tf_util_verif.fully_connected(net, 512, bn=True, is_training=is_training, scope=scope, bn_decay=bn_decay, reuse=reuse)
+        
+        with tf.variable_scope("dropout1") as scope:
+            net = tf_util_verif.dropout(net, keep_prob=0.5, is_training=is_training, scope=scope, reuse=reuse)
+        
+        with tf.variable_scope("fully_connected2") as scope:
+            net = tf_util_verif.fully_connected(net, 256, bn=True, is_training=is_training, scope=scope, bn_decay=bn_decay, reuse=reuse)
+        
+        with tf.variable_scope("dropout2") as scope:
+            net = tf_util_verif.dropout(net, keep_prob=0.5, is_training=is_training, scope=scope, reuse=reuse)
+
+        with tf.variable_scope("fully_connected3") as scope:
+            # net = tf_util.fully_connected(net, 40, activation_fn=None, scope='fc3')                            # original
+            # net = tf_util_verif.fully_connected(net, num_class, activation_fn=None, scope='fc3', reuse=reuse)  # Bernardo
+            net = tf_util_verif.fully_connected(net, 256, activation_fn=None, scope=scope, reuse=reuse)          # Bernardo
 
     return net, end_points
 
@@ -153,10 +167,10 @@ if __name__=='__main__':
             sess.run(tf.global_variables_initializer())
 
             pred, individual_loss, pred1, pred2 = sess.run([pred, individual_loss, pred1, pred2],
-                                                     feed_dict={pointclouds_pl1: data2,
-                                                     pointclouds_pl2: data2,
-                                                     labels_pl: label,
-                                                     is_training_pl:True})
+                                                            feed_dict={pointclouds_pl1: data1,
+                                                                       pointclouds_pl2: data2,
+                                                                       labels_pl: label,
+                                                                       is_training_pl: is_training})
 
             print('total loss:', pred)
             print('individual_loss:', individual_loss)
