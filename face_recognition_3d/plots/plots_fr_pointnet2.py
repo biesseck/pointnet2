@@ -79,7 +79,7 @@ def plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_a
     pyplot.plot(epoch, eval_mean_loss, label='eval_mean_loss', color='red')
     pyplot.xlabel('Epoch')
     pyplot.ylabel('Error')
-    pyplot.ylim(0, np.max(eval_mean_loss)*1.25)
+    pyplot.ylim(0, np.nanmax(eval_mean_loss)*1.25)
     pyplot.legend()
     
     # plot accuracy during training
@@ -114,7 +114,7 @@ def plot_training_history_pointnet2_verif_pairs(epoch, eval_mean_loss, eval_accu
         pyplot.plot(epoch, eval_mean_loss, label='eval_mean_loss', color='red')
         pyplot.xlabel('Epoch')
         pyplot.ylabel('Error')
-        pyplot.ylim(0, np.max(eval_mean_loss)*1.25)
+        pyplot.ylim(0, np.nanmax(eval_mean_loss)*1.25)
         pyplot.legend()
     
     pyplot.suptitle(title, fontsize=11, fontweight='bold')
@@ -190,7 +190,7 @@ def plot_samples_per_class_and_histogram(class_names, samples_per_class, log_sca
         pyplot.yscale('log')
         ylabel += ' (log scale)'
     pyplot.ylabel(ylabel)
-    # pyplot.ylim(0, np.max(samples_per_class)*1.25)
+    # pyplot.ylim(0, np.nanmax(samples_per_class)*1.25)
     pyplot.xlabel('Subjects')
     # pyplot.xlim(len(class_names)*-0.25, len(class_names)*1.25)
     pyplot.legend()
@@ -228,7 +228,7 @@ if __name__ == '__main__':
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.005/log_train.txt']
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.01/log_train.txt']
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_10exp_lr=0.001_batch=32/log_train.txt']
-        sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition/log_train.txt']
+        sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/verification/log_face_recognition/log_train.txt']
 
 
     args = parse_args()
