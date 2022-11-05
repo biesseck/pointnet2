@@ -47,8 +47,8 @@ parser.add_argument('--log_dir', default='log_face_recognition', help='Log dir [
 parser.add_argument('--num_point', type=int, default=2900, help='Point Number [default: 1024]')      # Bernardo
 parser.add_argument('--max_epoch', type=int, default=100, help='Epoch to run [default: 251]')
 # parser.add_argument('--batch_size', type=int, default=16, help='Batch Size during training [default: 16]')  # original
-parser.add_argument('--batch_size', type=int, default=8, help='Batch Size during training [default: 32]')    # Bernardo
-parser.add_argument('--learning_rate', type=float, default=0.001, help='Initial learning rate [default: 0.001]')
+parser.add_argument('--batch_size', type=int, default=32, help='Batch Size during training [default: 32]')    # Bernardo
+parser.add_argument('--learning_rate', type=float, default=0.00001, help='Initial learning rate [default: 0.001]')
 parser.add_argument('--momentum', type=float, default=0.9, help='Initial learning rate [default: 0.9]')
 parser.add_argument('--optimizer', default='adam', help='adam or momentum [default: adam]')
 parser.add_argument('--decay_step', type=int, default=200000, help='Decay step for lr decay [default: 200000]')
@@ -79,9 +79,9 @@ DECAY_RATE = FLAGS.decay_rate
 
 MODEL = importlib.import_module(FLAGS.model) # import network module
 MODEL_FILE = os.path.join(ROOT_DIR, '../models', FLAGS.model+'.py')
-LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + '/logs_training/' + FLAGS.log_dir   # Bernardo
+LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + '/logs_training/verification/' + FLAGS.log_dir   # Bernardo
 
-if not os.path.exists(LOG_DIR): os.mkdir(LOG_DIR)
+if not os.path.exists(LOG_DIR): os.makedirs(LOG_DIR)
 os.system('cp %s %s' % (MODEL_FILE, LOG_DIR)) # bkp of model def
 os.system('cp train_face_recognition_class.py %s' % (LOG_DIR)) # bkp of train procedure
 LOG_FILE_NAME = 'log_train.txt'
@@ -179,10 +179,13 @@ def train():
             # Get model and loss 
             # pred, end_points = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay)  # original
             pred1, end_points1, pred2, end_points2 = MODEL.get_model(pointclouds_pl1, pointclouds_pl2, is_training_pl, bn_decay=bn_decay)    # Bernardo
-            _, pred = MODEL.get_loss(pred1, pred2, labels_pl, end_points1, end_points2)
+            _, individual_losses, distances, pred_labels = MODEL.get_loss(pred1, pred2, labels_pl, end_points1, end_points2)
+
 
             losses = tf.get_collection('losses')
             individual_losses = tf.get_collection('individual_losses')
+            distances = tf.get_collection('distances')
+            pred_labels = tf.get_collection('pred_labels')
             total_loss = tf.add_n(losses, name='total_loss')
             tf.summary.scalar('total_loss', total_loss)
             for l in losses + [total_loss]:
@@ -226,9 +229,10 @@ def train():
                'pointclouds_pl2': pointclouds_pl2,
                'labels_pl': labels_pl,
                'is_training_pl': is_training_pl,
-               'pred': pred,
                'individual_losses': individual_losses,
-               'loss': total_loss,
+               'total_loss': total_loss,
+               'distances': distances,
+               'pred_labels': pred_labels,
                'train_op': train_op,
                'merged': merged,
                'step': batch,
@@ -244,7 +248,7 @@ def train():
             eval_one_epoch(sess, ops, test_writer)
 
             # Bernardo
-            # plot_classification_training_history()
+            plot_verification_training_history()
 
             # Save the variables to disk.
             if epoch % 10 == 0:
@@ -282,33 +286,28 @@ def train_one_epoch(sess, ops, train_writer):
                      ops['pointclouds_pl2']: cur_batch_data[1],
                      ops['labels_pl']: cur_batch_label,
                      ops['is_training_pl']: is_training}
-        summary, step, _, loss_val, ind_loss, pred_val = sess.run([ops['merged'], ops['step'],
-            ops['train_op'], ops['loss'], ops['individual_losses'], ops['pred']], feed_dict=feed_dict)
+        summary, step, _, loss_val, ind_loss, pred_labels = sess.run([ops['merged'], ops['step'],
+            ops['train_op'], ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
         train_writer.add_summary(summary, step)
-        # pred_val = np.argmax(pred_val, 1)   # original
-        # pred_val = np.argmax(pred_val, 0)     # Bernardo
-        # print('loss_val:', loss_val)
-        # print('ind_loss:', ind_loss)
-        # print('pred_val:', pred_val)
-        # print('batch_label:', batch_label)
-        # sys.exit(0)
-        # correct = np.sum(pred_val[0:bsize] == batch_label[0:bsize])
-        # total_correct += correct
-        # total_seen += bsize
-        # loss_sum += loss_val
-        # if (batch_idx+1)%50 == 0:
-        #     log_string(' ---- batch: %03d ----' % (batch_idx+1))
-        #     log_string('pred_val: %f' % (pred_val))
-        #     log_string('batch_label[0:bsize]: %f' % (batch_label[0:bsize]))
-        #     log_string('correct: %f' % (correct))
-        #     log_string('mean loss: %f' % (loss_sum / 50))
-        #     log_string('accuracy: %f' % (total_correct / float(total_seen)))
-        #     total_correct = 0
-        #     total_seen = 0
-        #     loss_sum = 0
+        
+        correct = np.sum(pred_labels[0:bsize] == batch_label[0:bsize])
+        total_correct += correct
+        total_seen += bsize
+        loss_sum += loss_val
+        if (batch_idx+1)%50 == 0:
+            log_string(' ---- batch: %03d ----' % (batch_idx+1))
+            # log_string('pred_val: %f' % (pred_val))
+            # log_string('batch_label[0:bsize]: %f' % (batch_label[0:bsize]))
+            log_string('correct: %f' % (correct))
+            log_string('mean loss: %f' % (loss_sum / 50))
+            log_string('accuracy: %f' % (total_correct / float(total_seen)))
+            total_correct = 0
+            total_seen = 0
+            loss_sum = 0
         batch_idx += 1
 
     TRAIN_DATASET.reset()
+
         
 def eval_one_epoch(sess, ops, test_writer):
     """ ops: dict mapping from string to tf ops """
@@ -345,12 +344,14 @@ def eval_one_epoch(sess, ops, test_writer):
                      ops['labels_pl']: cur_batch_label,
                      ops['is_training_pl']: is_training}
 
-        summary, step, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
-            ops['loss'], ops['pred']], feed_dict=feed_dict)
+        # summary, step, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
+        #     ops['total_loss'], ops['pred']], feed_dict=feed_dict)
+        summary, step, _, loss_val, ind_loss, pred_labels = sess.run([ops['merged'], ops['step'],
+            ops['train_op'], ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
         test_writer.add_summary(summary, step)
         # pred_val = np.argmax(pred_val, 1)
-        # correct = np.sum(pred_val[0:bsize] == batch_label[0:bsize])
-        # total_correct += correct
+        correct = np.sum(pred_labels[0:bsize] == batch_label[0:bsize])
+        total_correct += correct
         total_seen += bsize
         loss_sum += loss_val
         batch_idx += 1
@@ -360,7 +361,7 @@ def eval_one_epoch(sess, ops, test_writer):
             # total_correct_class[l] += (pred_val[i] == l)
     
     log_string('eval mean loss: %f' % (loss_sum / float(batch_idx)))
-    # log_string('eval accuracy: %f'% (total_correct / float(total_seen)))
+    log_string('eval accuracy: %f'% (total_correct / float(total_seen)))
     # log_string('eval avg class acc: %f' % (np.mean(np.array(total_correct_class)/np.array(total_seen_class,dtype=np.float))))
     EPOCH_CNT += 1
 
@@ -369,23 +370,22 @@ def eval_one_epoch(sess, ops, test_writer):
 
 
 # Bernardo
-def plot_classification_training_history():
+def plot_verification_training_history():
     path_log_file = os.path.join(LOG_DIR, LOG_FILE_NAME)
-    parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = plots_fr_pointnet2.load_original_training_log_pointnet2(path_file=path_log_file)
+    parameters, epoch, eval_mean_loss, eval_accuracy = plots_fr_pointnet2.load_original_training_log_pointnet2_verif_pairs(path_file=path_log_file)
 
     if FLAGS.dataset.upper() == 'frgc'.upper() or FLAGS.dataset.upper() == 'frgcv2'.upper():
-        title = 'PointNet++ training on FRGCv2 \nClassification (1:N) - '+str(NUM_CLASSES)+' classes'
+        title = 'PointNet++ training on FRGCv2 \nVerification (1:1)'
     elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
-        title = 'PointNet++ training on SyntheticFaces \nClassification (1:N) - '+str(NUM_CLASSES)+' classes - '+str(n_expressions)+' expressions'
+        title = 'PointNet++ training on SyntheticFaces \nVerification (1:1) - '+str(n_expressions)+' expressions'
     elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
-        title = 'PointNet++ training on LFW-Reconst3D-MICA \nClassification (1:N) - '+str(NUM_CLASSES)+' classes - min_samples='+str(min_samples)+' - max_samples='+str(max_samples)
+        title = 'PointNet++ training on LFW-Reconst3D-MICA \nVerification (1:1)'
     
     subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ')
     # path_image = './training_history.png'
     path_image = '/'.join(path_log_file.split('/')[:-1]) + '/training_history_from_log_file.png'
     print('Saving training history:', path_image)
-    plots_fr_pointnet2.plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
-
+    plots_fr_pointnet2.plot_training_history_pointnet2_verif_pairs(epoch, eval_mean_loss, eval_accuracy, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
 
 
 if __name__ == "__main__":
@@ -399,6 +399,6 @@ if __name__ == "__main__":
     LOG_FOUT.close()
 
     # Bernardo
-    # plot_classification_training_history()
+    plot_verification_training_history()
 
     print('\nFinished!\n')
