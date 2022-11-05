@@ -78,7 +78,7 @@ DECAY_RATE = FLAGS.decay_rate
 
 MODEL = importlib.import_module(FLAGS.model) # import network module
 MODEL_FILE = os.path.join(ROOT_DIR, '../models', FLAGS.model+'.py')
-LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + '/logs_training/' + FLAGS.log_dir   # Bernardo
+LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + '/logs_training/identification/' + FLAGS.log_dir   # Bernardo
 
 if not os.path.exists(LOG_DIR): os.mkdir(LOG_DIR)
 os.system('cp %s %s' % (MODEL_FILE, LOG_DIR)) # bkp of model def
