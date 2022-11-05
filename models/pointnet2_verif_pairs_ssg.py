@@ -86,6 +86,15 @@ def euclidean_distance(x, y):
     return tf.sqrt(sum_square)
 
 
+def classify_pairs(dist, thresh=0.5):
+    pred_labels = tf.Variable(tf.zeros_like(dist, dtype=tf.int32))
+    # condition = tf.less(dist, tf.constant(thresh))
+    condition = tf.less_equal(dist, tf.constant(thresh))
+    # condition = tf.less_equal(dist, tf.reduce_mean(dist))   # just test
+    pred_labels = tf.where(condition, tf.ones_like(pred_labels), pred_labels)
+    return pred_labels
+
+
 # Bernardo
 def contrastive_loss(left_feature, right_feature, label, margin=1.0):
     """
@@ -107,15 +116,17 @@ def contrastive_loss(left_feature, right_feature, label, margin=1.0):
     label = tf.to_float(label)
     one = tf.constant(1.0)
 
-    dist = euclidean_distance(left_feature, right_feature)
-    first_part = tf.multiply(one-label, dist)# (Y-1)*(d)
+    distances = euclidean_distance(left_feature, right_feature)
 
-    max_part = tf.square(tf.maximum(margin-dist, 0))
+    pred_labels = classify_pairs(distances, thresh=0.5)
+
+    first_part = tf.multiply(one-label, distances)# (Y-1)*(d)
+    max_part = tf.square(tf.maximum(margin-distances, 0))
     second_part = tf.multiply(label, max_part)  # (Y) * max(margin - d, 0)
 
     # loss = 0.5 * tf.reduce_mean(first_part + second_part)
     loss = first_part + second_part
-    return loss
+    return loss, distances, pred_labels
 
 ''' # original reference
 def get_loss(pred, label, end_points):
@@ -133,7 +144,7 @@ def get_loss(pred1, pred2, label, end_points1, end_points2):
     """ pred: B*NUM_CLASSES,
         label: B, """
     # loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=pred, labels=label)
-    individual_losses = contrastive_loss(pred1, pred2, label, margin=1.0)
+    individual_losses, distances, pred_labels = contrastive_loss(pred1, pred2, label, margin=1.0)
     
     classify_loss = tf.reduce_mean(individual_losses)
     # classify_loss = individual_loss
@@ -141,7 +152,9 @@ def get_loss(pred1, pred2, label, end_points1, end_points2):
     tf.summary.scalar('classify loss', classify_loss)
     tf.add_to_collection('losses', classify_loss)
     tf.add_to_collection('individual_losses', individual_losses)
-    return classify_loss, individual_losses
+    tf.add_to_collection('distances', distances)
+    tf.add_to_collection('pred_labels', pred_labels)
+    return classify_loss, individual_losses, distances, pred_labels
 
 
 if __name__=='__main__':
@@ -152,7 +165,7 @@ if __name__=='__main__':
         is_training_pl = tf.placeholder(tf.bool, shape=())
 
         pred1, end_points1, pred2, end_points2 = get_model(pointclouds_pl1, pointclouds_pl2, is_training_pl, bn_decay=None)    # Bernardo
-        pred, individual_loss = get_loss(pred1, pred2, labels_pl, end_points1, end_points2)
+        total_loss, individual_loss, distances, pred_labels = get_loss(pred1, pred2, labels_pl, end_points1, end_points2)
 
         data1 = np.ones((32,1024,3),dtype=np.float32)
         data2 = np.random.rand(32,1024,3)
@@ -161,20 +174,22 @@ if __name__=='__main__':
         is_training = False
         sess = tf.Session()
         with sess.as_default():
-            print_op = tf.Print(pointclouds_pl1, [pred])
+            print_op = tf.Print(pointclouds_pl1, [total_loss])
             with tf.control_dependencies([print_op]):
-                out = tf.add(pred, pred)
+                out = tf.add(total_loss, total_loss)
             sess.run(tf.global_variables_initializer())
 
-            pred, individual_loss, pred1, pred2 = sess.run([pred, individual_loss, pred1, pred2],
+            total_loss, individual_loss, distances, pred_labels, pred1, pred2 = sess.run([total_loss, individual_loss, distances, pred_labels, pred1, pred2],
                                                             feed_dict={pointclouds_pl1: data1,
                                                                        pointclouds_pl2: data2,
                                                                        labels_pl: label,
                                                                        is_training_pl: is_training})
 
-            print('total loss:', pred)
+            print('total loss:', total_loss)
             print('individual_loss:', individual_loss)
-            print('pred1:', pred1)
-            print('pred2:', pred2)
-            print('pred2.shape:', pred2.shape)
+            print('distances:', distances)
+            print('pred_labels:', pred_labels)
+            # print('pred1:', pred1)
+            # print('pred2:', pred2)
+            # print('pred2.shape:', pred2.shape)
 
