@@ -47,7 +47,7 @@ def load_original_training_log_pointnet2(path_file=''):
 def load_original_training_log_pointnet2_verif_pairs(path_file=''):
     with open(path_file) as f:
         all_lines = f.readlines()
-        parameters, epoch, eval_mean_loss, eval_accuracy = [], [], [], []
+        parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy = [], [], [], [], [], []
         for i, line in enumerate(all_lines):
             line = line[:-1]
             # print('line:', line)
@@ -55,16 +55,33 @@ def load_original_training_log_pointnet2_verif_pairs(path_file=''):
                 # parameters = line.replace('Namespace', '').replace('(', '').replace(')', '')
                 parameters = line.replace('Namespace', '')
                 # print('parameters:', parameters)
-            if line.startswith('---- EPOCH') and line.endswith('EVALUATION ----'):
+
+            if line.startswith('---- EPOCH') and line.endswith('TRAIN EVALUATION ----'):
                 epoch.append(int(line.split(' ')[2]))
-                if i+1 < len(all_lines) and all_lines[i+1].startswith('eval mean loss:'):
-                    eval_mean_loss.append(float(all_lines[i+1][:-1].split(':')[-1]))
-                if i+2 < len(all_lines) and all_lines[i+2].startswith('eval accuracy:'):
-                    eval_accuracy.append(float(all_lines[i+2][:-1].split(':')[-1]))
+                if i+2 < len(all_lines) and all_lines[i+2].startswith('train mean loss:'):
+                    train_mean_loss.append(float(all_lines[i+2][:-1].split(':')[-1]))
+                if i+3 < len(all_lines) and all_lines[i+3].startswith('train accuracy'):
+                    train_accuracy.append(float(all_lines[i+3][:-1].split(':')[-1]))
+
+            if line.startswith('---- EPOCH') and line.endswith('TEST EVALUATION ----'):
+                if i+2 < len(all_lines) and all_lines[i+2].startswith('test mean loss:'):
+                    test_mean_loss.append(float(all_lines[i+2][:-1].split(':')[-1]))
+                if i+3 < len(all_lines) and all_lines[i+3].startswith('test accuracy'):
+                    test_accuracy.append(float(all_lines[i+3][:-1].split(':')[-1]))
+
         epoch = np.array(epoch, dtype=np.int32)
-        eval_mean_loss = np.array(eval_mean_loss, dtype=np.float32)
-        eval_accuracy = np.array(eval_accuracy, dtype=np.float32)
-        return parameters, epoch, eval_mean_loss, eval_accuracy
+        train_mean_loss = np.array(train_mean_loss, dtype=np.float32)
+        train_accuracy = np.array(train_accuracy, dtype=np.float32)
+        test_mean_loss = np.array(test_mean_loss, dtype=np.float32)
+        test_accuracy = np.array(test_accuracy, dtype=np.float32)
+
+        # print('epoch:', epoch)
+        # print('train_mean_loss:', train_mean_loss)
+        # print('train_accuracy:', train_accuracy)
+        # print('test_mean_loss:', test_mean_loss)
+        # print('test_accuracy:', test_accuracy)
+
+        return parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy
 
 
 def plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title='', subtitle='', path_image='.', show_fig=False, save_fig=False):
@@ -104,27 +121,29 @@ def plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_a
         pyplot.show()
 
 
-def plot_training_history_pointnet2_verif_pairs(epoch, eval_mean_loss, eval_accuracy, title='', subtitle='', path_image='.', show_fig=False, save_fig=False):
+def plot_training_history_pointnet2_verif_pairs(epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy, title='', subtitle='', path_image='.', show_fig=False, save_fig=False):
     # plot loss during training
     pyplot.clf()
     # eval_accuracy = eval_mean_loss.copy()
-    if len(eval_mean_loss) > 0:
-        if len(eval_accuracy) > 0:
+    if len(train_mean_loss) > 0:
+        if len(test_accuracy) > 0:
             pyplot.subplot(211)
-        pyplot.plot(epoch, eval_mean_loss, label='eval_mean_loss', color='red')
+        pyplot.plot(epoch, train_mean_loss, label='train_mean_loss', color='red')
+        pyplot.plot(epoch, test_mean_loss, label='test_mean_loss', color='blue')
         pyplot.xlabel('Epoch')
         pyplot.ylabel('Error')
-        pyplot.ylim(0, np.nanmax(eval_mean_loss)*1.25)
+        pyplot.ylim(0, np.nanmax(train_mean_loss)*1.25)
         pyplot.legend()
     
     pyplot.suptitle(title, fontsize=11, fontweight='bold')
     pyplot.title(subtitle, fontsize=8)
     
-    if len(eval_accuracy) > 0:
+    if len(test_accuracy) > 0:
         # plot accuracy during training
         pyplot.subplot(212)
         # pyplot.title('Accuracy')
-        pyplot.plot(epoch, eval_accuracy, label='eval_accuracy', color='blue')
+        pyplot.plot(epoch, train_accuracy, label='train_accuracy', color='red')
+        pyplot.plot(epoch, test_accuracy, label='test_accuracy', color='blue')
         pyplot.xlabel('Epoch')
         pyplot.ylabel('Accuracy')
         pyplot.ylim(0, 1)
@@ -228,7 +247,7 @@ if __name__ == '__main__':
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.005/log_train.txt']
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.01/log_train.txt']
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_10exp_lr=0.001_batch=32/log_train.txt']
-        sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/verification/log_face_recognition/log_train.txt']
+        sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/verification/log_face_recognition/log_train_TEST.txt']
 
 
     args = parse_args()
@@ -236,11 +255,11 @@ if __name__ == '__main__':
     # load_original_training_log_pointnet2(path_file=args.input_path)
 
     # parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = load_original_training_log_pointnet2(path_file=args.input_path)
-    parameters, epoch, eval_mean_loss, eval_accuracy = load_original_training_log_pointnet2_verif_pairs(path_file=args.input_path)
-    
+    parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy = load_original_training_log_pointnet2_verif_pairs(path_file=args.input_path)
+
     title = 'PointNet++ training on LFW-Reconst3D-MICA \nVerification (1:1)'
     subtitle = 'Parameters: ' + break_string(parameters, substring=', ')
     path_image = '/'.join(args.input_path.split('/')[:-1]) + '/training_history_from_log_file.png'
-    plot_training_history_pointnet2_verif_pairs(epoch, eval_mean_loss, eval_accuracy, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
+    plot_training_history_pointnet2_verif_pairs(epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
 
     
