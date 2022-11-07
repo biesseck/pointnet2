@@ -45,7 +45,7 @@ parser.add_argument('--log_dir', default='log_face_recognition', help='Log dir [
 parser.add_argument('--num_point', type=int, default=2900, help='Point Number [default: 1024]')      # Bernardo
 parser.add_argument('--max_epoch', type=int, default=100, help='Epoch to run [default: 251]')
 # parser.add_argument('--batch_size', type=int, default=16, help='Batch Size during training [default: 16]')  # original
-parser.add_argument('--batch_size', type=int, default=16, help='Batch Size during training [default: 32]')    # Bernardo
+parser.add_argument('--batch_size', type=int, default=32, help='Batch Size during training [default: 32]')    # Bernardo
 parser.add_argument('--learning_rate', type=float, default=0.0001, help='Initial learning rate [default: 0.001]')
 parser.add_argument('--momentum', type=float, default=0.9, help='Initial learning rate [default: 0.9]')
 parser.add_argument('--optimizer', default='adam', help='adam or momentum [default: adam]')
@@ -248,8 +248,8 @@ def train():
             eval_one_epoch(sess, ops, test_writer)
             log_string('')
 
-            # # Bernardo
-            # plot_verification_training_history()
+            # Bernardo
+            plot_verification_training_history()
 
             # Save the variables to disk.
             if epoch % 10 == 0:
@@ -390,7 +390,7 @@ def eval_one_epoch(sess, ops, test_writer):
 # Bernardo
 def plot_verification_training_history():
     path_log_file = os.path.join(LOG_DIR, LOG_FILE_NAME)
-    parameters, epoch, eval_mean_loss, eval_accuracy = plots_fr_pointnet2.load_original_training_log_pointnet2_verif_pairs(path_file=path_log_file)
+    parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy = plots_fr_pointnet2.load_original_training_log_pointnet2_verif_pairs(path_file=path_log_file)
 
     if FLAGS.dataset.upper() == 'frgc'.upper() or FLAGS.dataset.upper() == 'frgcv2'.upper():
         title = 'PointNet++ training on FRGCv2 \nVerification (1:1)'
@@ -399,11 +399,11 @@ def plot_verification_training_history():
     elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
         title = 'PointNet++ training on LFW-Reconst3D-MICA \nVerification (1:1)'
     
-    subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ')
+    subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ', num_parts=3)
     # path_image = './training_history.png'
     path_image = '/'.join(path_log_file.split('/')[:-1]) + '/training_history_from_log_file.png'
-    print('Saving training history:', path_image)
-    plots_fr_pointnet2.plot_training_history_pointnet2_verif_pairs(epoch, eval_mean_loss, eval_accuracy, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
+    print('Saving training history:', path_image, '\n')
+    plots_fr_pointnet2.plot_training_history_pointnet2_verif_pairs(epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
 
 
 if __name__ == "__main__":
@@ -416,7 +416,7 @@ if __name__ == "__main__":
     train()
     LOG_FOUT.close()
 
-    # # Bernardo
-    # plot_verification_training_history()
+    # Bernardo
+    plot_verification_training_history()
 
     print('\nFinished!\n')
