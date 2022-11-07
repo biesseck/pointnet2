@@ -85,22 +85,25 @@ def euclidean_distance(x, y):
     # return tf.sqrt(tf.maximum(sum_square, tf.keras.backend.epsilon()))
     return tf.sqrt(sum_square)
 
+# Bernardo
+# cosine similarity = (a . b) / ||a|| ||b||
+def cosine_distance(x, y):
+    cos_sim = tf.reduce_sum(tf.multiply(x, y), axis=1) / ( tf.multiply(tf.norm(x, axis=1), tf.norm(y, axis=1)) )
+    cos_dist = 1 - cos_sim
+    return cos_dist
 
-def classify_pairs(dist, thresh=0.5):
-    pred_labels = tf.Variable(tf.zeros_like(dist, dtype=tf.int32))
-    # condition = tf.less(dist, tf.constant(thresh))
+
+def classify_pairs(dist, thresh):
     condition = tf.less_equal(dist, tf.constant(thresh))
-    # condition = tf.less_equal(dist, tf.reduce_mean(dist))   # just test
-    pred_labels = tf.where(condition, tf.ones_like(pred_labels), pred_labels)
+    # condition = tf.less_equal(dist, tf.reduce_mean(dist))    # just for tests
+    
+    pred_labels = tf.where(condition, tf.ones_like(dist), tf.zeros_like(dist))
     return pred_labels
 
 
-# Bernardo
-def contrastive_loss(left_feature, right_feature, label, margin=1.0):
-    """
+'''
     Compute the contrastive loss as in
-
-    L = 0.5 * Y * D^2 + 0.5 * (Y-1) * {max(0, margin - D)}^2
+    L = Y * D^2   +   (1-Y) * {max(0, margin - D)}^2
 
     **Parameters**
      left_feature: First element of the pair
@@ -110,21 +113,21 @@ def contrastive_loss(left_feature, right_feature, label, margin=1.0):
 
     **Returns**
      Return the loss operation
+'''
+# Bernardo
+def contrastive_loss(left_feature, right_feature, true_label, margin):
+    true_label = tf.to_float(true_label)
 
-    """
+    # distances = euclidean_distance(left_feature, right_feature)
+    distances = cosine_distance(left_feature, right_feature)
+    pred_labels = classify_pairs(distances, thresh=margin)    
 
-    label = tf.to_float(label)
-    one = tf.constant(1.0)
+    # Bernardo
+    first_part = true_label * tf.square(distances)
+    one = tf.ones_like(true_label)
+    zero = tf.zeros_like(true_label)
+    second_part = (one - true_label) * tf.square(tf.maximum(margin - distances, zero))
 
-    distances = euclidean_distance(left_feature, right_feature)
-
-    pred_labels = classify_pairs(distances, thresh=0.5)
-
-    first_part = tf.multiply(one-label, distances)# (Y-1)*(d)
-    max_part = tf.square(tf.maximum(margin-distances, 0))
-    second_part = tf.multiply(label, max_part)  # (Y) * max(margin - d, 0)
-
-    # loss = 0.5 * tf.reduce_mean(first_part + second_part)
     loss = first_part + second_part
     return loss, distances, pred_labels
 
@@ -140,13 +143,12 @@ def get_loss(pred, label, end_points):
 '''
 
 # Bernardo
-def get_loss(pred1, pred2, label, end_points1, end_points2):
-    """ pred: B*NUM_CLASSES,
-        label: B, """
+def get_loss(pred1, pred2, true_label, end_points1, end_points2):
     # loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=pred, labels=label)
-    individual_losses, distances, pred_labels = contrastive_loss(pred1, pred2, label, margin=1.0)
+    individual_losses, distances, pred_labels = contrastive_loss(pred1, pred2, true_label, margin=0.5)
     
-    classify_loss = tf.reduce_mean(individual_losses)
+    # classify_loss = tf.reduce_mean(individual_losses)
+    classify_loss = tf.reduce_sum(individual_losses)
     # classify_loss = individual_loss
 
     tf.summary.scalar('classify loss', classify_loss)
@@ -167,9 +169,12 @@ if __name__=='__main__':
         pred1, end_points1, pred2, end_points2 = get_model(pointclouds_pl1, pointclouds_pl2, is_training_pl, bn_decay=None)    # Bernardo
         total_loss, individual_loss, distances, pred_labels = get_loss(pred1, pred2, labels_pl, end_points1, end_points2)
 
-        data1 = np.ones((32,1024,3),dtype=np.float32)
+        # data1 = np.ones((32,1024,3),dtype=np.float32)
+        data1 = np.random.rand(32,1024,3)
         data2 = np.random.rand(32,1024,3)
-        label = np.zeros((32,),dtype=np.int32)
+        # data2 = data1
+        true_labels = np.zeros((32,),dtype=np.int32)
+        # true_labels = np.ones((32,),dtype=np.int32)
 
         is_training = False
         sess = tf.Session()
@@ -182,13 +187,17 @@ if __name__=='__main__':
             total_loss, individual_loss, distances, pred_labels, pred1, pred2 = sess.run([total_loss, individual_loss, distances, pred_labels, pred1, pred2],
                                                             feed_dict={pointclouds_pl1: data1,
                                                                        pointclouds_pl2: data2,
-                                                                       labels_pl: label,
+                                                                       labels_pl: true_labels,
                                                                        is_training_pl: is_training})
 
             print('total loss:', total_loss)
             print('individual_loss:', individual_loss)
             print('distances:', distances)
+            print('true_labels:', true_labels)
             print('pred_labels:', pred_labels)
+            print('pred_labels.shape:', pred_labels.shape)
+            print('true_labels == pred_labels:', true_labels == pred_labels)
+            print('np.sum(true_labels == pred_labels)):', np.sum(true_labels == pred_labels))
             # print('pred1:', pred1)
             # print('pred2:', pred2)
             # print('pred2.shape:', pred2.shape)

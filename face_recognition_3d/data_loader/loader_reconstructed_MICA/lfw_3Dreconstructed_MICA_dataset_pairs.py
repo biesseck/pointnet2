@@ -61,11 +61,12 @@ class LFR_3D_Reconstructed_MICA_Dataset_Pairs():
         self.datapath += all_neg_pairs_paths
         
         # self.cat = ['0', '1']    # Bernardo
-        self.cat = [pos_pair_label, neg_pair_label]    # Bernardo
+        self.cat = [neg_pair_label, pos_pair_label]    # Bernardo
         self.classes = dict(zip(self.cat, range(len(self.cat))))  
         self.num_classes = len(self.cat)
         # print('self.cat:', self.cat)
         # print('self.classes:', self.classes)
+        # print('self.num_classes:', self.num_classes)
         # sys.exit(0)
 
         self.cache_size = cache_size # how many data points to cache in memory
@@ -120,9 +121,10 @@ class LFR_3D_Reconstructed_MICA_Dataset_Pairs():
             cls = self.classes[self.datapath[index][0]]
             cls = np.array([cls]).astype(np.int32)
 
-            # Bernardosssssss
+            # Bernardo
             print('lfw_3Dreconstructed_MICA_dataset.py: _get_item(): loading file:', fn[1])
             print('lfw_3Dreconstructed_MICA_dataset.py: _get_item(): loading file:', fn[2])
+            print('label:', cls)
             print('-------------------------')
 
             # point_set = np.loadtxt(fn[1],delimiter=',').astype(np.float32)   # original

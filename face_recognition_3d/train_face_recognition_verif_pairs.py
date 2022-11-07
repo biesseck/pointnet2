@@ -32,11 +32,9 @@ from data_loader.loader_frgc2 import frgc2_dataset                              
 from data_loader.loader_synthetic_faces_gpmm import synthetic_faces_gpmm_dataset     # Bernardo
 from data_loader.loader_reconstructed_MICA import lfw_3Dreconstructed_MICA_dataset_pairs   # Bernardo
 
-
 # os.environ["CUDA_VISIBLE_DEVICES"]='-1'   # cpu
 # os.environ["CUDA_VISIBLE_DEVICES"]='0'  # gpu
 # os.environ["CUDA_VISIBLE_DEVICES"]='1'  # gpu
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
@@ -47,7 +45,7 @@ parser.add_argument('--log_dir', default='log_face_recognition', help='Log dir [
 parser.add_argument('--num_point', type=int, default=2900, help='Point Number [default: 1024]')      # Bernardo
 parser.add_argument('--max_epoch', type=int, default=100, help='Epoch to run [default: 251]')
 # parser.add_argument('--batch_size', type=int, default=16, help='Batch Size during training [default: 16]')  # original
-parser.add_argument('--batch_size', type=int, default=32, help='Batch Size during training [default: 32]')    # Bernardo
+parser.add_argument('--batch_size', type=int, default=16, help='Batch Size during training [default: 32]')    # Bernardo
 parser.add_argument('--learning_rate', type=float, default=0.00001, help='Initial learning rate [default: 0.001]')
 parser.add_argument('--momentum', type=float, default=0.9, help='Initial learning rate [default: 0.9]')
 parser.add_argument('--optimizer', default='adam', help='adam or momentum [default: adam]')
@@ -231,6 +229,8 @@ def train():
                'is_training_pl': is_training_pl,
                'individual_losses': individual_losses,
                'total_loss': total_loss,
+               'pred1': pred1,
+               'pred2': pred2,
                'distances': distances,
                'pred_labels': pred_labels,
                'train_op': train_op,
@@ -246,9 +246,10 @@ def train():
              
             train_one_epoch(sess, ops, train_writer)
             eval_one_epoch(sess, ops, test_writer)
+            log_string('')
 
-            # Bernardo
-            plot_verification_training_history()
+            # # Bernardo
+            # plot_verification_training_history()
 
             # Save the variables to disk.
             if epoch % 10 == 0:
@@ -271,6 +272,10 @@ def train_one_epoch(sess, ops, train_writer):
     total_seen = 0
     loss_sum = 0
     batch_idx = 0
+
+    global EPOCH_CNT
+    log_string('---- EPOCH %03d TRAIN EVALUATION ----'%(EPOCH_CNT))
+    
     while TRAIN_DATASET.has_next_batch():
         # batch_data, batch_label = TRAIN_DATASET.next_batch(augment=True)   # original
         batch_data, batch_label = TRAIN_DATASET.next_batch(augment=False)    # Bernardo
@@ -286,29 +291,43 @@ def train_one_epoch(sess, ops, train_writer):
                      ops['pointclouds_pl2']: cur_batch_data[1],
                      ops['labels_pl']: cur_batch_label,
                      ops['is_training_pl']: is_training}
-        summary, step, _, loss_val, ind_loss, pred_labels = sess.run([ops['merged'], ops['step'],
-            ops['train_op'], ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
+        summary, step, _, total_loss, ind_loss, pred1, pred2, distances, pred_labels = sess.run([ops['merged'], ops['step'],
+            ops['train_op'], ops['total_loss'], ops['individual_losses'], ops['pred1'], ops['pred2'], ops['distances'], ops['pred_labels']], feed_dict=feed_dict)
         train_writer.add_summary(summary, step)
         
-        correct = np.sum(pred_labels[0:bsize] == batch_label[0:bsize])
-        total_correct += correct
+        pred_labels = pred_labels[0]
+        correct_batch = np.sum(pred_labels[0:bsize] == batch_label[0:bsize])
+        total_correct += correct_batch
         total_seen += bsize
-        loss_sum += loss_val
-        if (batch_idx+1)%50 == 0:
-            log_string(' ---- batch: %03d ----' % (batch_idx+1))
-            # log_string('pred_val: %f' % (pred_val))
-            # log_string('batch_label[0:bsize]: %f' % (batch_label[0:bsize]))
-            log_string('correct: %f' % (correct))
-            log_string('mean loss: %f' % (loss_sum / 50))
-            log_string('accuracy: %f' % (total_correct / float(total_seen)))
-            total_correct = 0
-            total_seen = 0
-            loss_sum = 0
+        loss_sum += total_loss
+
+        # print()
+        # print('BATCH', batch_idx, ': pred1:', pred1)
+        # print('BATCH', batch_idx, ': pred2:', pred2)
+        # print('BATCH', batch_idx, ': distances:', distances)
+        # print('BATCH', batch_idx, ': pred_labels:', pred_labels)
+        # print('BATCH', batch_idx, ': bsize:', bsize)
+        # print('BATCH', batch_idx, ': pred_labels.shape:', pred_labels.shape)
+        # print('BATCH', batch_idx, ': batch_label:', batch_label)
+        # print('BATCH', batch_idx, ': batch_label.shape:', batch_label.shape)
+        # print('pred_labels[0:bsize] == batch_label[0:bsize]:', pred_labels[0:bsize] == batch_label[0:bsize])
+        # print('np.sum(pred_labels[0:bsize] == batch_label[0:bsize]):', np.sum(pred_labels[0:bsize] == batch_label[0:bsize]))
+        # print('BATCH', batch_idx, ': correct_batch:', correct_batch)
+        # print('BATCH', batch_idx, ': total_correct:', total_correct)
+        # print('BATCH', batch_idx, ': total_seen:', total_seen)
+        # print('BATCH', batch_idx, ': accuracy:', total_correct / float(total_seen))
+        # print()
+
         batch_idx += 1
 
+    # train error and accuracy
+    log_string('train loss sum: %f' % (loss_sum))
+    log_string('train mean loss: %f' % (loss_sum / float(batch_idx)))
+    log_string('train accuracy (total_correct / total_seen): %f'% (total_correct / float(total_seen)))
+    
     TRAIN_DATASET.reset()
 
-        
+
 def eval_one_epoch(sess, ops, test_writer):
     """ ops: dict mapping from string to tf ops """
     global EPOCH_CNT
@@ -327,7 +346,7 @@ def eval_one_epoch(sess, ops, test_writer):
     # total_correct_class = [0 for _ in range(NUM_CLASSES)]
     
     log_string(str(datetime.now()))
-    log_string('---- EPOCH %03d EVALUATION ----'%(EPOCH_CNT))
+    log_string('---- EPOCH %03d TEST EVALUATION ----'%(EPOCH_CNT))
     
     while TEST_DATASET.has_next_batch():
         batch_data, batch_label = TEST_DATASET.next_batch(augment=False)
@@ -350,18 +369,17 @@ def eval_one_epoch(sess, ops, test_writer):
             ops['train_op'], ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
         test_writer.add_summary(summary, step)
         # pred_val = np.argmax(pred_val, 1)
-        correct = np.sum(pred_labels[0:bsize] == batch_label[0:bsize])
-        total_correct += correct
+        pred_labels = pred_labels[0]
+        correct_batch = np.sum(pred_labels[0:bsize] == batch_label[0:bsize])
+        total_correct += correct_batch
         total_seen += bsize
         loss_sum += loss_val
         batch_idx += 1
-        for i in range(0, bsize):
-            l = batch_label[i]
-            # total_seen_class[l] += 1
-            # total_correct_class[l] += (pred_val[i] == l)
+            
+    log_string('test loss sum: %f' % (loss_sum))
+    log_string('test mean loss: %f' % (loss_sum / float(batch_idx)))
+    log_string('test accuracy (total_correct / total_seen): %f'% (total_correct / float(total_seen)))
     
-    log_string('eval mean loss: %f' % (loss_sum / float(batch_idx)))
-    log_string('eval accuracy: %f'% (total_correct / float(total_seen)))
     # log_string('eval avg class acc: %f' % (np.mean(np.array(total_correct_class)/np.array(total_seen_class,dtype=np.float))))
     EPOCH_CNT += 1
 
@@ -398,7 +416,7 @@ if __name__ == "__main__":
     train()
     LOG_FOUT.close()
 
-    # Bernardo
-    plot_verification_training_history()
+    # # Bernardo
+    # plot_verification_training_history()
 
     print('\nFinished!\n')
