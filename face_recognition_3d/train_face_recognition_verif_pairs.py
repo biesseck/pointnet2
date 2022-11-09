@@ -51,6 +51,7 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Initial learnin
 parser.add_argument('--optimizer', default='adam', help='adam or momentum [default: adam]')
 parser.add_argument('--decay_step', type=int, default=200000, help='Decay step for lr decay [default: 200000]')
 parser.add_argument('--decay_rate', type=float, default=0.7, help='Decay rate for lr decay [default: 0.7]')
+parser.add_argument('--margin', type=float, default=0.5, help='Minimum distance for non-corresponding pairs in Contrastive Loss')
 
 # parser.add_argument('--normal', action='store_true', help='Whether to use normal information')     # original
 # parser.add_argument('--normal', type=bool, default=True, help='Whether to use normal information')   # Bernardo
@@ -74,6 +75,7 @@ MOMENTUM = FLAGS.momentum
 OPTIMIZER = FLAGS.optimizer
 DECAY_STEP = FLAGS.decay_step
 DECAY_RATE = FLAGS.decay_rate
+MARGIN = FLAGS.margin
 
 MODEL = importlib.import_module(FLAGS.model) # import network module
 MODEL_FILE = os.path.join(ROOT_DIR, '../models', FLAGS.model+'.py')
@@ -174,10 +176,10 @@ def train():
             bn_decay = get_bn_decay(batch)
             tf.summary.scalar('bn_decay', bn_decay)
 
-            # Get model and loss 
+            # Get model and loss
             # pred, end_points = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay)  # original
             pred1, end_points1, pred2, end_points2 = MODEL.get_model(pointclouds_pl1, pointclouds_pl2, is_training_pl, bn_decay=bn_decay)    # Bernardo
-            _, individual_losses, distances, pred_labels = MODEL.get_loss(pred1, pred2, labels_pl, end_points1, end_points2)
+            _, individual_losses, distances, pred_labels = MODEL.get_loss(pred1, pred2, labels_pl, end_points1, end_points2, MARGIN)
 
 
             losses = tf.get_collection('losses')
