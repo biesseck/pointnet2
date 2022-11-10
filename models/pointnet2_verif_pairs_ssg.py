@@ -143,9 +143,9 @@ def get_loss(pred, label, end_points):
 '''
 
 # Bernardo
-def get_loss(pred1, pred2, true_label, end_points1, end_points2):
+def get_loss(pred1, pred2, true_label, end_points1, end_points2, margin):
     # loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=pred, labels=label)
-    individual_losses, distances, pred_labels = contrastive_loss(pred1, pred2, true_label, margin=0.5)
+    individual_losses, distances, pred_labels = contrastive_loss(pred1, pred2, true_label, margin=margin)
     
     # classify_loss = tf.reduce_mean(individual_losses)
     classify_loss = tf.reduce_sum(individual_losses)
