@@ -163,34 +163,39 @@ class TreeMS1MV2_3DReconstructedMICA:
                 
                 avail_all_pc_paths[one_pos_pair_idx[0]], avail_all_pc_paths[one_pos_pair_idx[1]] = False, False
                 pos_pairs[pair_idx] = [unique_subjects_names[rand_subj_idx[subj_idx]], one_pos_pair_idx[0], one_pos_pair_idx[1]]
-                # print('subject_name:', unique_subjects_names[rand_subj_idx[subj_idx]], '    samples_per_subject:', samples_per_subject[rand_subj_idx[subj_idx]], '    indexes_samples:', indexes_samples[rand_subj_idx[subj_idx]], '    pos_pairs[pair_idx]:', pos_pairs[pair_idx])
+                # print(str(pair_idx)+'/'+str(num_pos_pairs) + '    subject_name:', unique_subjects_names[rand_subj_idx[subj_idx]], '    samples_per_subject:', samples_per_subject[rand_subj_idx[subj_idx]], '    indexes_samples:', indexes_samples[rand_subj_idx[subj_idx]], '    pos_pairs[pair_idx]:', pos_pairs[pair_idx])
                 # raw_input('PAUSED')
+                pair_idx += 1
             subj_idx += 1
-            pair_idx += 1
 
         # Make negative pairs
         rand_subj_idx = random.sample(range(0, len(unique_subjects_names)), len(unique_subjects_names))
         pair_idx = 0
         subj1_idx, subj2_idx = 0, 1
-        while pair_idx < num_neg_pairs and subj2_idx < len(unique_subjects_names):
+        while pair_idx < num_neg_pairs:
             begin_subj1, end_subj1 = indexes_samples[rand_subj_idx[subj1_idx]]
             begin_subj2, end_subj2 = indexes_samples[rand_subj_idx[subj2_idx]]
             one_neg_pair_idx = [choose_random_sample(begin_subj1, end_subj1, amount=1), choose_random_sample(begin_subj2, end_subj2, amount=1)]
 
             if not reuse_samples:
                 while not is_pair_valid(avail_all_pc_paths, one_neg_pair_idx[0], one_neg_pair_idx[1]):
-                        one_neg_pair_idx = [choose_random_sample(begin_subj1, end_subj1, amount=1), choose_random_sample(begin_subj2, end_subj2, amount=1)]
+                    one_neg_pair_idx = [choose_random_sample(begin_subj1, end_subj1, amount=1), choose_random_sample(begin_subj2, end_subj2, amount=1)]
 
             avail_all_pc_paths[one_neg_pair_idx[0]], avail_all_pc_paths[one_neg_pair_idx[1]] = False, False
             neg_pairs[pair_idx] = [unique_subjects_names[rand_subj_idx[subj1_idx]], one_neg_pair_idx[0], unique_subjects_names[rand_subj_idx[subj2_idx]], one_neg_pair_idx[1]]
             # print('subject_name1:', unique_subjects_names[rand_subj_idx[subj1_idx]], '    samples_per_subject1:', samples_per_subject[rand_subj_idx[subj1_idx]], '    indexes_samples1:', indexes_samples[rand_subj_idx[subj1_idx]])
             # print('subject_name2:', unique_subjects_names[rand_subj_idx[subj2_idx]], '    samples_per_subject2:', samples_per_subject[rand_subj_idx[subj2_idx]], '    indexes_samples2:', indexes_samples[rand_subj_idx[subj2_idx]])
-            # print('neg_pairs[pair_idx]:', neg_pairs[pair_idx])            
+            # print(str(pair_idx)+'/'+str(num_neg_pairs) + '    neg_pairs[pair_idx]:', neg_pairs[pair_idx])            
             # raw_input('PAUSED')
             # print('--------------------------')
+            pair_idx += 1
             subj1_idx += 2
             subj2_idx += 2
-            pair_idx += 1        
+
+            if subj2_idx >= len(unique_subjects_names):
+                subj1_idx = random.sample(range(0, len(unique_subjects_names)), 1)[0]
+                subj2_idx = subj1_idx+1
+
         return pos_pairs, neg_pairs
 
 
@@ -226,25 +231,28 @@ class TreeMS1MV2_3DReconstructedMICA:
         all_pos_pairs_paths = []
         all_neg_pairs_paths = []
 
-        for pos_pair in pos_pairs:
+        for i, pos_pair in enumerate(pos_pairs):
+            # print('pair '+str(i)+'/'+str(len(pos_pairs)), '   pos_pair:', pos_pair)
             subj_name, index1, index2 = pos_pair
             path_sample1 = all_pc_paths[index1]
             path_sample2 = all_pc_paths[index2]
             all_pos_pairs_paths.append((pos_pair_label, path_sample1, path_sample2))
-            print('all_pos_pairs_paths[-1]:', all_pos_pairs_paths[-1])            
-            raw_input('PAUSED')
-            print('--------------------------')
+            # print('all_pos_pairs_paths[-1]:', all_pos_pairs_paths[-1])            
+            # raw_input('PAUSED')
+            # print('--------------------------')
 
-        for neg_pair in neg_pairs:
+        for i, neg_pair in enumerate(neg_pairs):
+            # print('pair '+str(i)+'/'+str(len(pos_pairs)), '   neg_pair:', neg_pair)
             subj_name1, index1, subj_name2, index2 = neg_pair
             path_sample1 = all_pc_paths[index1]
             path_sample2 = all_pc_paths[index2]
             all_neg_pairs_paths.append((neg_pair_label, path_sample1, path_sample2))
-            print('all_neg_pairs_paths[-1]:', all_neg_pairs_paths[-1])            
-            raw_input('PAUSED')
-            print('--------------------------')
+            # print('all_neg_pairs_paths[-1]:', all_neg_pairs_paths[-1])            
+            # raw_input('PAUSED')
+            # print('--------------------------')
         
-        return all_pos_pairs_paths, all_neg_pairs_paths
+        # return all_pos_pairs_paths, all_neg_pairs_paths
+        return all_pos_pairs_paths, all_neg_pairs_paths, pos_pair_label, neg_pair_label
 
 
 
@@ -253,14 +261,15 @@ if __name__ == '__main__':
 
     dir_level = 2
     
-    file_ext='.ply'
-    # file_ext='_centralized_nosetip.ply'
+    # file_ext = '.ply'
+    # file_ext = '_centralized_nosetip.ply'
+    file_ext = '_centralized-nosetip_with-normals_filter-radius=100.npy'
     
-    min_samples=1
-    # min_samples=3
+    min_samples = 1
+    # min_samples = 3
 
-    max_samples=-1
-    # max_samples=100
+    max_samples = -1
+    # max_samples = 100
 
     log_scale = True
     # log_scale = False
@@ -301,7 +310,7 @@ if __name__ == '__main__':
     print('Making train and test pairs...')
     # pos_pairs, neg_pairs = TreeMS1MV2_3DReconstructedMICA().make_pairs_global_indexes(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
     # pos_pairs_format_lfw, neg_pairs_format_lfw = TreeMS1MV2_3DReconstructedMICA().make_pairs_indexes_lfw_format(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
-    pos_pairs_format_labels_paths, neg_pairs_labels_paths = TreeMS1MV2_3DReconstructedMICA().make_pairs_labels_with_paths(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
+    pos_pairs_format_labels_paths, neg_pairs_labels_paths, pos_pair_label, neg_pair_label = TreeMS1MV2_3DReconstructedMICA().make_pairs_labels_with_paths(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
 
 
     # print('Searching all files ending with \'' + file_ext + '\'...')

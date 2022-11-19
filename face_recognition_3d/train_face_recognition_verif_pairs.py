@@ -28,9 +28,10 @@ from plots import plots_fr_pointnet2
 
 # import modelnet_dataset     # original
 # import modelnet_h5_dataset  # original
-from data_loader.loader_frgc2 import frgc2_dataset                                   # Bernardo
-from data_loader.loader_synthetic_faces_gpmm import synthetic_faces_gpmm_dataset     # Bernardo
-from data_loader.loader_reconstructed_MICA import lfw_3Dreconstructed_MICA_dataset_pairs   # Bernardo
+from data_loader.loader_frgc2 import frgc2_dataset                                           # Bernardo
+from data_loader.loader_synthetic_faces_gpmm import synthetic_faces_gpmm_dataset             # Bernardo
+from data_loader.loader_reconstructed_MICA import lfw_3Dreconstructed_MICA_dataset_pairs     # Bernardo
+from data_loader.loader_reconstructed_MICA import ms1mv2_3Dreconstructed_MICA_dataset_pairs  # Bernardo
 
 # os.environ["CUDA_VISIBLE_DEVICES"]='-1'   # cpu
 # os.environ["CUDA_VISIBLE_DEVICES"]='0'  # gpu
@@ -59,7 +60,8 @@ parser.add_argument('--normal', type=bool, default=False, help='Whether to use n
 
 # parser.add_argument('--dataset', type=str, default='frgc', help='Name of dataset to train model')   # Bernardo
 # parser.add_argument('--dataset', type=str, default='synthetic_gpmm', help='Name of dataset to train model')   # Bernardo
-parser.add_argument('--dataset', type=str, default='reconst_mica_lfw', help='Name of dataset to train model')   # Bernardo
+# parser.add_argument('--dataset', type=str, default='reconst_mica_lfw', help='Name of dataset to train model')   # Bernardo
+parser.add_argument('--dataset', type=str, default='reconst_mica_ms1mv2', help='Name of dataset to train model')   # Bernardo
 
 
 FLAGS = parser.parse_args()
@@ -121,6 +123,12 @@ elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
     DATA_PATH = os.path.join(ROOT_DIR, '../../MICA/demo/output/lfw')
     TRAIN_DATASET = lfw_3Dreconstructed_MICA_dataset_pairs.LFR_3D_Reconstructed_MICA_Dataset_Pairs(root=DATA_PATH, npoints=NUM_POINT, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
     TEST_DATASET  = lfw_3Dreconstructed_MICA_dataset_pairs.LFR_3D_Reconstructed_MICA_Dataset_Pairs(root=DATA_PATH, npoints=NUM_POINT, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+
+elif FLAGS.dataset.upper() == 'reconst_mica_ms1mv2'.upper():
+    DATA_PATH = os.path.join(ROOT_DIR, '../../MICA/demo/output/MS-Celeb-1M/ms1m-retinaface-t1/images')
+    TRAIN_DATASET = ms1mv2_3Dreconstructed_MICA_dataset_pairs.MS1MV2_3D_Reconstructed_MICA_Dataset_Pairs(root=DATA_PATH, npoints=NUM_POINT, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+    TEST_DATASET  = ms1mv2_3Dreconstructed_MICA_dataset_pairs.MS1MV2_3D_Reconstructed_MICA_Dataset_Pairs(root=DATA_PATH, npoints=NUM_POINT, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
+
 
 # else:
 #     assert(NUM_POINT<=2048)
@@ -400,6 +408,8 @@ def plot_verification_training_history():
         title = 'PointNet++ training on SyntheticFaces \nVerification (1:1) - '+str(n_expressions)+' expressions'
     elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
         title = 'PointNet++ training on LFW-Reconst3D-MICA \nVerification (1:1)'
+    elif FLAGS.dataset.upper() == 'reconst_mica_ms1mv2'.upper():
+        title = 'PointNet++ training on MS1MV2-Reconst3D-MICA \nVerification (1:1)'
     
     subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ', num_parts=3)
     # path_image = './training_history.png'
