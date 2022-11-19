@@ -252,24 +252,26 @@ def train():
                'end_points1': end_points1,
                'end_points2': end_points2}
 
+        global EPOCH_CNT
         best_acc = -1
         for epoch in range(MAX_EPOCH):
             log_string('**** EPOCH %03d ****' % (epoch))
             sys.stdout.flush()
              
-            train_loss_sum, train_mean_loss, train_accuracy = train_one_epoch(sess, ops, train_writer)
-            test_loss_sum, test_mean_loss, test_accuracy = eval_one_epoch(sess, ops, test_writer)
+            train_one_epoch(sess, ops, train_writer)
+            train_loss_sum, train_mean_loss, train_accuracy = eval_train_one_epoch(sess, ops, train_writer)
+            test_loss_sum, test_mean_loss, test_accuracy = eval_test_one_epoch(sess, ops, test_writer)
             log_string('')
 
             global BEST_MEAN_LOSS, BEST_ACC
             if train_mean_loss < BEST_MEAN_LOSS:
                 BEST_MEAN_LOSS = train_mean_loss
                 save_path = saver.save(sess, os.path.join(LOG_DIR, "model_best_train_mean_loss.ckpt"))
-                log_string("Best model (train_mean_loss) saved in file: %s" % save_path)
+                print("Best model (train_mean_loss) saved in file: %s" % save_path)
             if train_accuracy > BEST_ACC:
                 BEST_ACC = train_accuracy
                 save_path = saver.save(sess, os.path.join(LOG_DIR, "model_best_train_accuracy.ckpt"))
-                log_string("Best model (train_accuracy) saved in file: %s" % save_path)
+                print("Best model (train_accuracy) saved in file: %s" % save_path)
 
             # Save the variables to disk.
             if epoch % 10 == 0:
@@ -278,6 +280,7 @@ def train():
             
             # Bernardo
             plot_verification_training_history()
+            EPOCH_CNT += 1
 
 
 def train_one_epoch(sess, ops, train_writer):
@@ -297,7 +300,7 @@ def train_one_epoch(sess, ops, train_writer):
     batch_idx = 0
 
     global EPOCH_CNT
-    log_string('---- EPOCH %03d TRAIN EVALUATION ----'%(EPOCH_CNT))
+    # log_string('---- EPOCH %03d TRAIN EVALUATION ----'%(EPOCH_CNT))
     
     while TRAIN_DATASET.has_next_batch():
         # batch_data, batch_label = TRAIN_DATASET.next_batch(augment=True)   # original
@@ -343,18 +346,79 @@ def train_one_epoch(sess, ops, train_writer):
 
         batch_idx += 1
 
-    # train error and accuracy
+    # # train error and accuracy
+    # train_mean_loss = loss_sum / float(batch_idx)
+    # train_accuracy = total_correct / float(total_seen)
+    # log_string('train loss sum: %f' % (loss_sum))
+    # log_string('train mean loss: %f' % (train_mean_loss))
+    # log_string('train accuracy (total_correct / total_seen): %f'% (train_accuracy))
+    
+    TRAIN_DATASET.reset()
+
+
+def eval_train_one_epoch(sess, ops, test_writer):
+    """ ops: dict mapping from string to tf ops """
+    global EPOCH_CNT
+    is_training = False
+
+    # Make sure batch data is of same size
+    cur_batch_data = np.zeros((2,BATCH_SIZE,NUM_POINT,TRAIN_DATASET.num_channel()))
+    cur_batch_label = np.zeros((BATCH_SIZE), dtype=np.int32)
+
+    total_correct = 0
+    total_seen = 0
+    loss_sum = 0
+    batch_idx = 0
+    shape_ious = []
+    # total_seen_class = [0 for _ in range(NUM_CLASSES)]
+    # total_correct_class = [0 for _ in range(NUM_CLASSES)]
+    
+    log_string(str(datetime.now()))
+    log_string('---- EPOCH %03d TRAIN EVALUATION ----'%(EPOCH_CNT))
+    
+    while TRAIN_DATASET.has_next_batch():
+        batch_data, batch_label = TRAIN_DATASET.next_batch(augment=False)
+        # bsize = batch_data.shape[0]  # original
+        bsize = batch_data.shape[1]    # Bernardo
+        # for the last batch in the epoch, the bsize:end are from last batch
+        
+        cur_batch_data[0,0:bsize,...] = batch_data[0]
+        cur_batch_data[1,0:bsize,...] = batch_data[1]
+        cur_batch_label[0:bsize] = batch_label
+
+        feed_dict = {ops['pointclouds_pl1']: cur_batch_data[0],
+                     ops['pointclouds_pl2']: cur_batch_data[1],
+                     ops['labels_pl']: cur_batch_label,
+                     ops['is_training_pl']: is_training}
+
+        # summary, step, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
+        #     ops['total_loss'], ops['pred']], feed_dict=feed_dict)
+        summary, step, _, loss_val, ind_loss, pred_labels = sess.run([ops['merged'], ops['step'],
+            ops['train_op'], ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
+        test_writer.add_summary(summary, step)
+        # pred_val = np.argmax(pred_val, 1)
+        pred_labels = pred_labels[0]
+        correct_batch = np.sum(pred_labels[0:bsize] == batch_label[0:bsize])
+        total_correct += correct_batch
+        total_seen += bsize
+        loss_sum += loss_val
+        batch_idx += 1
+    
     train_mean_loss = loss_sum / float(batch_idx)
     train_accuracy = total_correct / float(total_seen)
     log_string('train loss sum: %f' % (loss_sum))
     log_string('train mean loss: %f' % (train_mean_loss))
     log_string('train accuracy (total_correct / total_seen): %f'% (train_accuracy))
     
+    # log_string('eval avg class acc: %f' % (np.mean(np.array(total_correct_class)/np.array(total_seen_class,dtype=np.float))))
+    # EPOCH_CNT += 1
+
     TRAIN_DATASET.reset()
     return loss_sum, train_mean_loss, train_accuracy
 
 
-def eval_one_epoch(sess, ops, test_writer):
+
+def eval_test_one_epoch(sess, ops, test_writer):
     """ ops: dict mapping from string to tf ops """
     global EPOCH_CNT
     is_training = False
@@ -409,7 +473,7 @@ def eval_one_epoch(sess, ops, test_writer):
     log_string('test accuracy (total_correct / total_seen): %f'% (test_accuracy))
     
     # log_string('eval avg class acc: %f' % (np.mean(np.array(total_correct_class)/np.array(total_seen_class,dtype=np.float))))
-    EPOCH_CNT += 1
+    # EPOCH_CNT += 1
 
     TEST_DATASET.reset()
     return loss_sum, test_mean_loss, test_accuracy
