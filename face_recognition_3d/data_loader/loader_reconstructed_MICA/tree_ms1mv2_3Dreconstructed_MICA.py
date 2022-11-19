@@ -131,6 +131,8 @@ class TreeMS1MV2_3DReconstructedMICA:
 
 
     def make_pairs_global_indexes(self, all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples=True):
+        random.seed(440)
+        
         def choose_random_sample(begin, end, amount=1):
             return random.sample(range(begin, end+1), amount)[0]
 
@@ -216,6 +218,35 @@ class TreeMS1MV2_3DReconstructedMICA:
         return pos_pairs, neg_pairs
 
 
+    def make_pairs_labels_with_paths(self, all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples=True):
+        pos_pairs, neg_pairs = self.make_pairs_global_indexes(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
+        pos_pair_label = '1'
+        neg_pair_label = '0'
+
+        all_pos_pairs_paths = []
+        all_neg_pairs_paths = []
+
+        for pos_pair in pos_pairs:
+            subj_name, index1, index2 = pos_pair
+            path_sample1 = all_pc_paths[index1]
+            path_sample2 = all_pc_paths[index2]
+            all_pos_pairs_paths.append((pos_pair_label, path_sample1, path_sample2))
+            print('all_pos_pairs_paths[-1]:', all_pos_pairs_paths[-1])            
+            raw_input('PAUSED')
+            print('--------------------------')
+
+        for neg_pair in neg_pairs:
+            subj_name1, index1, subj_name2, index2 = neg_pair
+            path_sample1 = all_pc_paths[index1]
+            path_sample2 = all_pc_paths[index2]
+            all_neg_pairs_paths.append((neg_pair_label, path_sample1, path_sample2))
+            print('all_neg_pairs_paths[-1]:', all_neg_pairs_paths[-1])            
+            raw_input('PAUSED')
+            print('--------------------------')
+        
+        return all_pos_pairs_paths, all_neg_pairs_paths
+
+
 
 if __name__ == '__main__':
     dataset_path = '/home/bjgbiesseck/GitHub/MICA/demo/output/MS-Celeb-1M/ms1m-retinaface-t1/images'
@@ -269,8 +300,8 @@ if __name__ == '__main__':
 
     print('Making train and test pairs...')
     # pos_pairs, neg_pairs = TreeMS1MV2_3DReconstructedMICA().make_pairs_global_indexes(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
-    pos_pairs_format_lfw, neg_pairs_format_lfw = TreeMS1MV2_3DReconstructedMICA().make_pairs_indexes_lfw_format(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
-
+    # pos_pairs_format_lfw, neg_pairs_format_lfw = TreeMS1MV2_3DReconstructedMICA().make_pairs_indexes_lfw_format(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
+    pos_pairs_format_labels_paths, neg_pairs_labels_paths = TreeMS1MV2_3DReconstructedMICA().make_pairs_labels_with_paths(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
 
 
     # print('Searching all files ending with \'' + file_ext + '\'...')
