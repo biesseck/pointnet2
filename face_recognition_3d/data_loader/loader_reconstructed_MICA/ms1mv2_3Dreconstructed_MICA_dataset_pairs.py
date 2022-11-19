@@ -138,10 +138,10 @@ class MS1MV2_3D_Reconstructed_MICA_Dataset_Pairs():
             cls = np.array([cls]).astype(np.int32)
 
             # Bernardo
-            print('ms1mv2_3Dreconstructed_MICA_dataset.py: _get_item(): loading file:', fn[1])
-            print('ms1mv2_3Dreconstructed_MICA_dataset.py: _get_item(): loading file:', fn[2])
-            print('label:', cls)
-            print('-------------------------')
+            # print('ms1mv2_3Dreconstructed_MICA_dataset.py: _get_item(): loading file:', fn[1])
+            # print('ms1mv2_3Dreconstructed_MICA_dataset.py: _get_item(): loading file:', fn[2])
+            # print('label:', cls)
+            # print('-------------------------')
 
             # point_set = np.loadtxt(fn[1],delimiter=',').astype(np.float32)   # original
             if fn[1].endswith('.npy'):
