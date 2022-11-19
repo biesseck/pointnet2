@@ -167,6 +167,8 @@ class TreeMS1MV2_3DReconstructedMICA:
                 # raw_input('PAUSED')
                 pair_idx += 1
             subj_idx += 1
+            if subj_idx >= len(unique_subjects_names):
+                subj_idx = random.sample(range(0, len(unique_subjects_names)), 1)[0]
 
         # Make negative pairs
         rand_subj_idx = random.sample(range(0, len(unique_subjects_names)), len(unique_subjects_names))
@@ -255,6 +257,30 @@ class TreeMS1MV2_3DReconstructedMICA:
         return all_pos_pairs_paths, all_neg_pairs_paths, pos_pair_label, neg_pair_label
 
 
+    def save_pairs_txt_file_lfw_format(self, pos_pairs_format_lfw, neg_pairs_format_lfw, perc_train, perc_test, pairs_file_path):
+        with open(pairs_file_path, 'w') as file:
+            num_pos_pairs_train = int(round(len(pos_pairs_format_lfw) * perc_train))
+            num_neg_pairs_train = int(round(len(neg_pairs_format_lfw) * perc_train))
+            file.write(str(num_pos_pairs_train) + '\ttrain positive pairs' + '\n')
+            for i, pos_pair in enumerate(pos_pairs_format_lfw[:num_pos_pairs_train]):
+                file.write(str(pos_pair[0]) + '\t' + str(pos_pair[1]) + '\t' + str(pos_pair[2]) + '\n')
+            
+            file.write(str(num_neg_pairs_train) + '\ttrain negative pairs' + '\n')
+            for i, neg_pair in enumerate(neg_pairs_format_lfw[:num_neg_pairs_train]):
+                file.write(str(neg_pair[0]) + '\t' + str(neg_pair[1]) + '\t' + str(neg_pair[2]) + '\t' + str(neg_pair[3]) + '\n')
+
+
+            num_pos_pairs_test = int(round(len(pos_pairs_format_lfw) * perc_test))
+            num_neg_pairs_test = int(round(len(neg_pairs_format_lfw) * perc_test))
+            file.write(str(num_pos_pairs_test) + '\ttest positive pairs' + '\n')
+            for i, pos_pair in enumerate(pos_pairs_format_lfw[num_pos_pairs_test:]):
+                file.write(str(pos_pair[0]) + '\t' + str(pos_pair[1]) + '\t' + str(pos_pair[2]) + '\n')
+            
+            file.write(str(num_neg_pairs_test) + '\ttest negative pairs' + '\n')
+            for i, neg_pair in enumerate(neg_pairs_format_lfw[num_neg_pairs_test:]):
+                file.write(str(neg_pair[0]) + '\t' + str(neg_pair[1]) + '\t' + str(neg_pair[2]) + '\t' + str(neg_pair[3]) + '\n')
+
+
 
 if __name__ == '__main__':
     dataset_path = '/home/bjgbiesseck/GitHub/MICA/demo/output/MS-Celeb-1M/ms1m-retinaface-t1/images'
@@ -274,14 +300,16 @@ if __name__ == '__main__':
     log_scale = True
     # log_scale = False
 
-    num_pos_pairs = 10
-    # num_pos_pairs = 10000
+    num_pos_pairs, num_neg_pairs = 10, 10
+    # num_pos_pairs, num_neg_pairs = 2000, 2000
+    # num_pos_pairs, num_neg_pairs = 10000, 10000
+    # num_pos_pairs, num_neg_pairs = 25000, 25000
+    # num_pos_pairs, num_neg_pairs = 50000, 50000
+    # num_pos_pairs, num_neg_pairs = 100000, 100000
+    # num_pos_pairs, num_neg_pairs = 200000, 200000
 
-    num_neg_pairs = 10
-    # num_neg_pairs = 20000
-
-    # reuse_samples = True
-    reuse_samples = False
+    reuse_samples = True
+    # reuse_samples = False
 
     # print('Searching all files ending with \'' + file_ext + '\' in \'' + dataset_path + '\' ...')
     # all_pc_paths, all_pc_subjects = TreeMS1MV2_3DReconstructedMICA().get_all_pointclouds_paths(dir_path=dataset_path, dir_level=dir_level, pc_ext=file_ext)
@@ -307,10 +335,23 @@ if __name__ == '__main__':
     # print('len(unique_subjects_names):', len(unique_subjects_names), '    len(samples_per_subject):', len(samples_per_subject), '    len(indexes_samples):', len(indexes_samples))
     # sys.exit(0)
 
-    print('Making train and test pairs...')
+    # print('Making train and test pairs...')
     # pos_pairs, neg_pairs = TreeMS1MV2_3DReconstructedMICA().make_pairs_global_indexes(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
+    # pos_pairs_format_labels_paths, neg_pairs_labels_paths, pos_pair_label, neg_pair_label = TreeMS1MV2_3DReconstructedMICA().make_pairs_labels_with_paths(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
+
+    # print('Making train and test pairs to save in file...')
     # pos_pairs_format_lfw, neg_pairs_format_lfw = TreeMS1MV2_3DReconstructedMICA().make_pairs_indexes_lfw_format(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
-    pos_pairs_format_labels_paths, neg_pairs_labels_paths, pos_pair_label, neg_pair_label = TreeMS1MV2_3DReconstructedMICA().make_pairs_labels_with_paths(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
+    # perc_train = 0.8
+    # perc_test = 1.0 - perc_train
+    # total_train_pairs = int(round((num_pos_pairs + num_neg_pairs) * perc_train))
+    # total_test_pairs = int(round((num_pos_pairs + num_neg_pairs) * perc_test))
+    # pairs_file_path = 'ms1mv2_retinaface_subj_10408_pairs_' + str(total_train_pairs+total_test_pairs) + '_train_' + str(total_train_pairs) + '_test_' + str(total_test_pairs) + '.txt'
+    # print('Saving train and test pairs to file \'' + pairs_file_path + '\'' + '...')
+    # TreeMS1MV2_3DReconstructedMICA().save_pairs_txt_file_lfw_format(pos_pairs_format_lfw, neg_pairs_format_lfw, perc_train, perc_test, pairs_file_path)
+    # print('Saved!')
+
+
+
 
 
     # print('Searching all files ending with \'' + file_ext + '\'...')
