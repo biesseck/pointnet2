@@ -32,7 +32,7 @@ parser.add_argument('--batch_size', type=int, default=16, help='Batch Size durin
 # parser.add_argument('--num_point', type=int, default=1024, help='Point Number [default: 1024]')    # original
 parser.add_argument('--num_point', type=int, default=2900, help='Point Number [default: 1024]')      # Bernardo
 # parser.add_argument('--model_path', default='log/model.ckpt', help='model checkpoint file path [default: log/model.ckpt]')   # original
-parser.add_argument('--model_path', default='logs_training/verification/log_face_recognition_lrate=0.00005_batch=8_margin=0.5/model.ckpt', help='model checkpoint file path')  # Bernardo
+parser.add_argument('--model_path', default='logs_training/verification/log_face_recognition_train=ms1mv2_subj=10408_pairs=100000_lrate=0.00005_batch=8/model_best_train_accuracy.ckpt', help='model checkpoint file path')  # Bernardo
 parser.add_argument('--dump_dir', default='dump', help='dump folder path [dump]')
 # parser.add_argument('--normal', action='store_true', help='Whether to use normal information')      # original
 parser.add_argument('--normal', type=bool, default=False, help='Whether to use normal information')   # Bernardo
