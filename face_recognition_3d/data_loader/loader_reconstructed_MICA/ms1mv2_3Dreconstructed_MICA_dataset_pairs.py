@@ -53,9 +53,10 @@ class MS1MV2_3D_Reconstructed_MICA_Dataset_Pairs():
         
         perc_train = 0.8
         perc_test = 1.0 - perc_train
-        num_pos_pairs, num_neg_pairs = 100, 100
-        # num_pos_pairs, num_neg_pairs = 10000, 10000
-        # num_pos_pairs, num_neg_pairs = 20000, 20000
+        # num_pos_pairs, num_neg_pairs = 100, 100
+        num_pos_pairs, num_neg_pairs = 10000, 10000
+        # num_pos_pairs, num_neg_pairs = 25000, 25000
+        # num_pos_pairs, num_neg_pairs = 50000, 50000
         reuse_samples = True
 
         print('Making positive and negative pairs for', split, '...')

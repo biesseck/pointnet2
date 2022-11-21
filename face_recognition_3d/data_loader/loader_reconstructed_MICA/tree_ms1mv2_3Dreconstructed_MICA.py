@@ -144,6 +144,13 @@ class TreeMS1MV2_3DReconstructedMICA:
                 return True
             return False
         
+        def is_pair_duplicate(pair_search, all_pairs):
+            assert len(pair_search) == 2
+            found_indexes = [idx for idx, pair in enumerate(all_pairs) if pair_search[0] in pair and pair_search[1] in pair]
+            if len(found_indexes) > 0:
+                return True
+            return False
+        
         pos_pairs = [None] * num_pos_pairs
         neg_pairs = [None] * num_neg_pairs
         avail_all_pc_paths = [True] * len(all_pc_paths)
@@ -155,7 +162,14 @@ class TreeMS1MV2_3DReconstructedMICA:
         while pair_idx < num_pos_pairs:
             if samples_per_subject[rand_subj_idx[subj_idx]] > 1:   # for positive pairs, use only subjects containing 2 or more samples
                 begin_subj, end_subj = indexes_samples[rand_subj_idx[subj_idx]]
+
                 one_pos_pair_idx = make_random_pair(begin_subj, end_subj, amount=2)
+                while is_pair_duplicate(one_pos_pair_idx, pos_pairs[:pair_idx]):
+                    print('Duplicate positive pair found:', one_pos_pair_idx, '    formed pairs:', pair_idx)
+                    subj_idx = random.sample(range(0, len(unique_subjects_names)), 1)[0]
+                    if samples_per_subject[rand_subj_idx[subj_idx]] > 1:
+                        begin_subj, end_subj = indexes_samples[rand_subj_idx[subj_idx]]
+                        one_pos_pair_idx = make_random_pair(begin_subj, end_subj, amount=2)
 
                 if not reuse_samples:
                     while not is_pair_valid(avail_all_pc_paths, one_pos_pair_idx[0], one_pos_pair_idx[1]):
@@ -177,8 +191,16 @@ class TreeMS1MV2_3DReconstructedMICA:
         while pair_idx < num_neg_pairs:
             begin_subj1, end_subj1 = indexes_samples[rand_subj_idx[subj1_idx]]
             begin_subj2, end_subj2 = indexes_samples[rand_subj_idx[subj2_idx]]
+            
             one_neg_pair_idx = [choose_random_sample(begin_subj1, end_subj1, amount=1), choose_random_sample(begin_subj2, end_subj2, amount=1)]
-
+            while is_pair_duplicate(one_neg_pair_idx, neg_pairs[:pair_idx]):
+                print('Duplicate negative pair found:', one_neg_pair_idx, '    formed pairs:', pair_idx)
+                subj1_idx = random.sample(range(0, len(unique_subjects_names)), 1)[0]
+                subj2_idx = subj1_idx+1
+                begin_subj1, end_subj1 = indexes_samples[rand_subj_idx[subj1_idx]]
+                begin_subj2, end_subj2 = indexes_samples[rand_subj_idx[subj2_idx]]
+                one_neg_pair_idx = [choose_random_sample(begin_subj1, end_subj1, amount=1), choose_random_sample(begin_subj2, end_subj2, amount=1)]
+            
             if not reuse_samples:
                 while not is_pair_valid(avail_all_pc_paths, one_neg_pair_idx[0], one_neg_pair_idx[1]):
                     one_neg_pair_idx = [choose_random_sample(begin_subj1, end_subj1, amount=1), choose_random_sample(begin_subj2, end_subj2, amount=1)]
@@ -281,6 +303,32 @@ class TreeMS1MV2_3DReconstructedMICA:
                 file.write(str(neg_pair[0]) + '\t' + str(neg_pair[1]) + '\t' + str(neg_pair[2]) + '\t' + str(neg_pair[3]) + '\n')
 
 
+    def check_duplicate_pairs(self, pos_pairs, neg_pairs):
+        num_repeated_pos_pairs = 0
+        num_repeated_neg_pairs = 0
+        for pair_search in pos_pairs:
+            found_indexes = [idx for idx, pair in enumerate(pos_pairs) if pair[1] in pair_search and pair[2] in pair_search]
+            num_repeated_pos_pairs += len(found_indexes) - 1  # consider only repetitions
+            if len(found_indexes) > 1:
+                duplicate_pairs = [pos_pairs[fi] for fi in found_indexes]
+                print('pair_search:', pair_search)
+                print('duplicate_pairs:', duplicate_pairs)
+                print('found_indexes:', found_indexes)
+                print('----------------')
+        
+        for pair_search in neg_pairs:
+            found_indexes = [idx for idx, pair in enumerate(neg_pairs) if pair[1] in pair_search and pair[3] in pair_search]
+            num_repeated_pos_pairs += len(found_indexes) - 1  # consider only repetitions
+            if len(found_indexes) > 1:
+                duplicate_pairs = [neg_pairs[fi] for fi in found_indexes]
+                print('pair_search:', pair_search)
+                print('duplicate_pairs:', duplicate_pairs)
+                print('found_indexes:', found_indexes)
+                print('----------------')
+        
+        print('pos_pairs:', len(pos_pairs), '    num_repeated_pos_pairs:', num_repeated_pos_pairs)
+        print('neg_pairs:', len(neg_pairs), '    num_repeated_neg_pairs:', num_repeated_neg_pairs)
+
 
 if __name__ == '__main__':
     dataset_path = '/home/bjgbiesseck/GitHub/MICA/demo/output/MS-Celeb-1M/ms1m-retinaface-t1/images'
@@ -300,9 +348,9 @@ if __name__ == '__main__':
     log_scale = True
     # log_scale = False
 
-    num_pos_pairs, num_neg_pairs = 10, 10
+    # num_pos_pairs, num_neg_pairs = 10, 10
     # num_pos_pairs, num_neg_pairs = 2000, 2000
-    # num_pos_pairs, num_neg_pairs = 10000, 10000
+    num_pos_pairs, num_neg_pairs = 10000, 10000
     # num_pos_pairs, num_neg_pairs = 25000, 25000
     # num_pos_pairs, num_neg_pairs = 50000, 50000
     # num_pos_pairs, num_neg_pairs = 100000, 100000
@@ -335,9 +383,12 @@ if __name__ == '__main__':
     # print('len(unique_subjects_names):', len(unique_subjects_names), '    len(samples_per_subject):', len(samples_per_subject), '    len(indexes_samples):', len(indexes_samples))
     # sys.exit(0)
 
-    # print('Making train and test pairs...')
-    # pos_pairs, neg_pairs = TreeMS1MV2_3DReconstructedMICA().make_pairs_global_indexes(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
+    print('Making train and test pairs...')
+    pos_pairs, neg_pairs = TreeMS1MV2_3DReconstructedMICA().make_pairs_global_indexes(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
     # pos_pairs_format_labels_paths, neg_pairs_labels_paths, pos_pair_label, neg_pair_label = TreeMS1MV2_3DReconstructedMICA().make_pairs_labels_with_paths(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
+    
+    print('Checking if there are repeated pairs...')
+    TreeMS1MV2_3DReconstructedMICA().check_duplicate_pairs(pos_pairs, neg_pairs)
 
     # print('Making train and test pairs to save in file...')
     # pos_pairs_format_lfw, neg_pairs_format_lfw = TreeMS1MV2_3DReconstructedMICA().make_pairs_indexes_lfw_format(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
