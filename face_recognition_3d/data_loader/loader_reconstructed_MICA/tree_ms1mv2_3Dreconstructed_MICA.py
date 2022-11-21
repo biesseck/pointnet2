@@ -383,23 +383,20 @@ if __name__ == '__main__':
     # print('len(unique_subjects_names):', len(unique_subjects_names), '    len(samples_per_subject):', len(samples_per_subject), '    len(indexes_samples):', len(indexes_samples))
     # sys.exit(0)
 
-    print('Making train and test pairs...')
-    pos_pairs, neg_pairs = TreeMS1MV2_3DReconstructedMICA().make_pairs_global_indexes(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
+    # print('Making train and test pairs...')
+    # pos_pairs, neg_pairs = TreeMS1MV2_3DReconstructedMICA().make_pairs_global_indexes(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
     # pos_pairs_format_labels_paths, neg_pairs_labels_paths, pos_pair_label, neg_pair_label = TreeMS1MV2_3DReconstructedMICA().make_pairs_labels_with_paths(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
     
-    print('Checking if there are repeated pairs...')
-    TreeMS1MV2_3DReconstructedMICA().check_duplicate_pairs(pos_pairs, neg_pairs)
-
-    # print('Making train and test pairs to save in file...')
-    # pos_pairs_format_lfw, neg_pairs_format_lfw = TreeMS1MV2_3DReconstructedMICA().make_pairs_indexes_lfw_format(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
-    # perc_train = 0.8
-    # perc_test = 1.0 - perc_train
-    # total_train_pairs = int(round((num_pos_pairs + num_neg_pairs) * perc_train))
-    # total_test_pairs = int(round((num_pos_pairs + num_neg_pairs) * perc_test))
-    # pairs_file_path = 'ms1mv2_retinaface_subj_10408_pairs_' + str(total_train_pairs+total_test_pairs) + '_train_' + str(total_train_pairs) + '_test_' + str(total_test_pairs) + '.txt'
-    # print('Saving train and test pairs to file \'' + pairs_file_path + '\'' + '...')
-    # TreeMS1MV2_3DReconstructedMICA().save_pairs_txt_file_lfw_format(pos_pairs_format_lfw, neg_pairs_format_lfw, perc_train, perc_test, pairs_file_path)
-    # print('Saved!')
+    print('Making train and test pairs to save in file...')
+    pos_pairs_format_lfw, neg_pairs_format_lfw = TreeMS1MV2_3DReconstructedMICA().make_pairs_indexes_lfw_format(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
+    perc_train = 0.8
+    perc_test = 1.0 - perc_train
+    total_train_pairs = int(round((num_pos_pairs + num_neg_pairs) * perc_train))
+    total_test_pairs = int(round((num_pos_pairs + num_neg_pairs) * perc_test))
+    pairs_file_path = 'ms1mv2_retinaface_subj_10408_pairs_' + str(total_train_pairs+total_test_pairs) + '_train_' + str(total_train_pairs) + '_test_' + str(total_test_pairs) + '.txt'
+    print('Saving train and test pairs to file \'' + pairs_file_path + '\'' + '...')
+    TreeMS1MV2_3DReconstructedMICA().save_pairs_txt_file_lfw_format(pos_pairs_format_lfw, neg_pairs_format_lfw, perc_train, perc_test, pairs_file_path)
+    print('Saved!')
 
 
 
