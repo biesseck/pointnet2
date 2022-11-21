@@ -254,11 +254,13 @@ def train():
 
         global EPOCH_CNT
         best_acc = -1
-        for epoch in range(MAX_EPOCH):
+        for epoch in range(MAX_EPOCH+1):
             log_string('**** EPOCH %03d ****' % (epoch))
             sys.stdout.flush()
-             
-            train_one_epoch(sess, ops, train_writer)
+
+            if epoch > 0:
+                train_one_epoch(sess, ops, train_writer)
+
             train_loss_sum, train_mean_loss, train_accuracy = eval_train_one_epoch(sess, ops, train_writer)
             test_loss_sum, test_mean_loss, test_accuracy = eval_test_one_epoch(sess, ops, test_writer)
             log_string('')
