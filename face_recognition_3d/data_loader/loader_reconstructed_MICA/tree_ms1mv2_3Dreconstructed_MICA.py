@@ -165,7 +165,7 @@ class TreeMS1MV2_3DReconstructedMICA:
 
                 one_pos_pair_idx = make_random_pair(begin_subj, end_subj, amount=2)
                 while is_pair_duplicate(one_pos_pair_idx, pos_pairs[:pair_idx]):
-                    print('Duplicate positive pair found:', one_pos_pair_idx, '    formed pairs:', pair_idx)
+                    print('Duplicate positive pair found:', one_pos_pair_idx, '    formed pairs:', str(pair_idx)+'/'+str(num_pos_pairs))
                     subj_idx = random.sample(range(0, len(unique_subjects_names)), 1)[0]
                     if samples_per_subject[rand_subj_idx[subj_idx]] > 1:
                         begin_subj, end_subj = indexes_samples[rand_subj_idx[subj_idx]]
@@ -194,7 +194,7 @@ class TreeMS1MV2_3DReconstructedMICA:
             
             one_neg_pair_idx = [choose_random_sample(begin_subj1, end_subj1, amount=1), choose_random_sample(begin_subj2, end_subj2, amount=1)]
             while is_pair_duplicate(one_neg_pair_idx, neg_pairs[:pair_idx]):
-                print('Duplicate negative pair found:', one_neg_pair_idx, '    formed pairs:', pair_idx)
+                print('Duplicate negative pair found:', one_neg_pair_idx, '    formed pairs:', str(pair_idx)+'/'+str(num_neg_pairs))
                 subj1_idx = random.sample(range(0, len(unique_subjects_names)), 1)[0]
                 subj2_idx = subj1_idx+1
                 begin_subj1, end_subj1 = indexes_samples[rand_subj_idx[subj1_idx]]

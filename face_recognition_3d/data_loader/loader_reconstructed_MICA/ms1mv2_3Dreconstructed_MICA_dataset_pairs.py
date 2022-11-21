@@ -39,23 +39,23 @@ class MS1MV2_3D_Reconstructed_MICA_Dataset_Pairs():
         self.npoints = npoints
         self.normalize = normalize
         self.normal_channel = normal_channel
-        
+
         # Bernardo
         # file_ext = '.ply'
         file_ext = 'mesh_centralized-nosetip_with-normals_filter-radius=100.npy'
         # file_ext = 'mesh_upsample_MetaPU_upsample_MetaPU_centralized-nosetip_with-normals_filter-radius=100.npy'
-    
+
         # Bernardo
         assert(split=='train' or split=='test')
-        
+
         print('Searching all files ending with \'' + file_ext + '\' in \'' + root + '\' ...')
         all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples = TreeMS1MV2_3DReconstructedMICA().get_all_pointclouds_paths_count(root, 2, file_ext)
-        
+
         perc_train = 0.8
         perc_test = 1.0 - perc_train
         # num_pos_pairs, num_neg_pairs = 100, 100
-        num_pos_pairs, num_neg_pairs = 10000, 10000
-        # num_pos_pairs, num_neg_pairs = 25000, 25000
+        # num_pos_pairs, num_neg_pairs = 10000, 10000
+        num_pos_pairs, num_neg_pairs = 25000, 25000
         # num_pos_pairs, num_neg_pairs = 50000, 50000
         reuse_samples = True
 
