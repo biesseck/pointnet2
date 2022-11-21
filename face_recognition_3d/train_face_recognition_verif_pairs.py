@@ -317,7 +317,7 @@ def train_one_epoch(sess, ops, train_writer):
                      ops['pointclouds_pl2']: cur_batch_data[1],
                      ops['labels_pl']: cur_batch_label,
                      ops['is_training_pl']: is_training}
-        summary, step, _, total_loss, ind_loss, pred1, pred2, distances, pred_labels = sess.run([ops['merged'], ops['step'],
+        summary, step, train_op, total_loss, ind_loss, pred1, pred2, distances, pred_labels = sess.run([ops['merged'], ops['step'],
             ops['train_op'], ops['total_loss'], ops['individual_losses'], ops['pred1'], ops['pred2'], ops['distances'], ops['pred_labels']], feed_dict=feed_dict)
         train_writer.add_summary(summary, step)
         
@@ -376,8 +376,8 @@ def eval_train_one_epoch(sess, ops, train_writer):
 
         # summary, step, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
         #     ops['total_loss'], ops['pred']], feed_dict=feed_dict)
-        summary, step, _, loss_val, ind_loss, pred_labels = sess.run([ops['merged'], ops['step'],
-            ops['train_op'], ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
+        summary, step, loss_val, ind_loss, pred_labels = sess.run([ops['merged'], ops['step'],
+            ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
         train_writer.add_summary(summary, step)
         # pred_val = np.argmax(pred_val, 1)
         pred_labels = pred_labels[0]
@@ -438,8 +438,8 @@ def eval_test_one_epoch(sess, ops, test_writer):
 
         # summary, step, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
         #     ops['total_loss'], ops['pred']], feed_dict=feed_dict)
-        summary, step, _, loss_val, ind_loss, pred_labels = sess.run([ops['merged'], ops['step'],
-            ops['train_op'], ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
+        summary, step, loss_val, ind_loss, pred_labels = sess.run([ops['merged'], ops['step'],
+            ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
         test_writer.add_summary(summary, step)
         # pred_val = np.argmax(pred_val, 1)
         pred_labels = pred_labels[0]
