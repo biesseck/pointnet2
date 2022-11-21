@@ -53,9 +53,9 @@ class MS1MV2_3D_Reconstructed_MICA_Dataset_Pairs():
 
         perc_train = 0.8
         perc_test = 1.0 - perc_train
-        num_pos_pairs, num_neg_pairs = 50, 50
+        # num_pos_pairs, num_neg_pairs = 50, 50
         # num_pos_pairs, num_neg_pairs = 100, 100
-        # num_pos_pairs, num_neg_pairs = 150, 150
+        num_pos_pairs, num_neg_pairs = 150, 150
         # num_pos_pairs, num_neg_pairs = 10000, 10000
         # num_pos_pairs, num_neg_pairs = 25000, 25000
         # num_pos_pairs, num_neg_pairs = 50000, 50000

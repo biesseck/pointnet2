@@ -59,22 +59,8 @@ if not os.path.exists(DUMP_DIR): os.mkdir(DUMP_DIR)
 LOG_FOUT = open(os.path.join(DUMP_DIR, 'log_evaluate.txt'), 'w')
 LOG_FOUT.write(str(FLAGS)+'\n')
 
-# NUM_CLASSES = 40
-# SHAPE_NAMES = [line.rstrip() for line in \
-#     open(os.path.join(ROOT_DIR, 'data/modelnet40_ply_hdf5_2048/shape_names.txt'))] 
-
 HOSTNAME = socket.gethostname()
 
-# # Shapenet official train/test split
-# if FLAGS.normal:
-#     assert(NUM_POINT<=10000)
-#     DATA_PATH = os.path.join(ROOT_DIR, 'data/modelnet40_normal_resampled')
-#     TRAIN_DATASET = modelnet_dataset.ModelNetDataset(root=DATA_PATH, npoints=NUM_POINT, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
-#     TEST_DATASET = modelnet_dataset.ModelNetDataset(root=DATA_PATH, npoints=NUM_POINT, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
-# else:
-#     assert(NUM_POINT<=2048)
-#     TRAIN_DATASET = modelnet_h5_dataset.ModelNetH5Dataset(os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/train_files.txt'), batch_size=BATCH_SIZE, npoints=NUM_POINT, shuffle=True)
-#     TEST_DATASET = modelnet_h5_dataset.ModelNetH5Dataset(os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/test_files.txt'), batch_size=BATCH_SIZE, npoints=NUM_POINT, shuffle=False)
 
 if FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
     DATA_PATH = os.path.join(ROOT_DIR, '../../MICA/demo/output/lfw')
@@ -119,12 +105,6 @@ def evaluate(num_votes):
     saver.restore(sess, MODEL_PATH)
     log_string("Model restored.")
 
-    # ops = {'pointclouds_pl1': pointclouds_pl1,
-    #        'pointclouds_pl2': pointclouds_pl2,
-    #        'labels_pl': labels_pl,
-    #        'is_training_pl': is_training_pl,
-    #        'pred': pred,
-    #        'loss': total_loss}
     ops = {'pointclouds_pl1': pointclouds_pl1,
                'pointclouds_pl2': pointclouds_pl2,
                'labels_pl': labels_pl,
@@ -135,9 +115,6 @@ def evaluate(num_votes):
                'pred2': pred2,
                'distances': distances,
                'pred_labels': pred_labels,
-               # 'train_op': train_op,
-               # 'merged': merged,
-               # 'step': batch,
                'end_points1': end_points1,
                'end_points2': end_points2}
 
@@ -174,30 +151,14 @@ def eval_one_epoch(sess, ops, num_votes=1, topk=1):
         cur_batch_data[1,0:bsize,...] = batch_data[1]
         cur_batch_label[0:bsize] = batch_label
 
-        # batch_pred_sum = np.zeros((BATCH_SIZE, NUM_CLASSES)) # score for classes
-        for vote_idx in range(num_votes):
-            # Shuffle point order to achieve different farthest samplings
-            # shuffled_indices = np.arange(NUM_POINT)
-            # np.random.shuffle(shuffled_indices)
-            # if FLAGS.normal:
-            #     rotated_data = provider.rotate_point_cloud_by_angle_with_normal(cur_batch_data[:, shuffled_indices, :],
-            #         vote_idx/float(num_votes) * np.pi * 2)
-            # else:
-            #     rotated_data = provider.rotate_point_cloud_by_angle(cur_batch_data[:, shuffled_indices, :],
-            #         vote_idx/float(num_votes) * np.pi * 2)
+        feed_dict = {ops['pointclouds_pl1']: cur_batch_data[0],
+                     ops['pointclouds_pl2']: cur_batch_data[1],
+                     ops['labels_pl']: cur_batch_label,
+                     ops['is_training_pl']: is_training}
 
-            # feed_dict = {ops['pointclouds_pl']: rotated_data,
-            #              ops['labels_pl']: cur_batch_label,
-            #              ops['is_training_pl']: is_training}
-            
-            feed_dict = {ops['pointclouds_pl1']: cur_batch_data[0],
-                         ops['pointclouds_pl2']: cur_batch_data[1],
-                         ops['labels_pl']: cur_batch_label,
-                         ops['is_training_pl']: is_training}
-
-            # loss_val, pred_val = sess.run([ops['loss'], ops['pred']], feed_dict=feed_dict)
-            loss_val, ind_loss, pred_labels = sess.run([ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
-            # batch_pred_sum += pred_labels
+        # loss_val, pred_val = sess.run([ops['loss'], ops['pred']], feed_dict=feed_dict)
+        loss_val, ind_loss, pred_labels = sess.run([ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
+        # batch_pred_sum += pred_labels
 
         print('pred_labels:', pred_labels[0:bsize])
         print('batch_label:', batch_label[0:bsize])
@@ -211,19 +172,14 @@ def eval_one_epoch(sess, ops, num_votes=1, topk=1):
         loss_sum += loss_val
         batch_idx += 1
 
-        # for i in range(bsize):
-        #     l = batch_label[i]
-        #     total_seen_class[l] += 1
-        #     total_correct_class[l] += (pred_val[i] == l)
     
     test_mean_loss = loss_sum / float(batch_idx)
     test_accuracy = total_correct / float(total_seen)
-    log_string('eval mean loss: %f' % (test_mean_loss))
-    log_string('eval accuracy: %f'% (test_accuracy))
+    log_string('test loss sum: %f' % (loss_sum))
+    log_string('test mean loss: %f' % (test_mean_loss))
+    log_string('test accuracy: %f'% (test_accuracy))
     
-    # class_accuracies = np.array(total_correct_class)/np.array(total_seen_class,dtype=np.float)
-    # for i, name in enumerate(SHAPE_NAMES):
-    #     log_string('%10s:\t%0.3f' % (name, class_accuracies[i]))
+    
 
 
 if __name__=='__main__':
