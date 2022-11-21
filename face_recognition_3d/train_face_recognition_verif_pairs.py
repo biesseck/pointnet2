@@ -325,24 +325,7 @@ def train_one_epoch(sess, ops, train_writer):
         correct_batch = np.sum(pred_labels[0:bsize] == batch_label[0:bsize])
         total_correct += correct_batch
         total_seen += bsize
-        loss_sum += total_loss
-
-        # print()
-        # print('BATCH', batch_idx, ': pred1:', pred1)
-        # print('BATCH', batch_idx, ': pred2:', pred2)
-        # print('BATCH', batch_idx, ': distances:', distances)
-        # print('BATCH', batch_idx, ': pred_labels:', pred_labels)
-        # print('BATCH', batch_idx, ': bsize:', bsize)
-        # print('BATCH', batch_idx, ': pred_labels.shape:', pred_labels.shape)
-        # print('BATCH', batch_idx, ': batch_label:', batch_label)
-        # print('BATCH', batch_idx, ': batch_label.shape:', batch_label.shape)
-        # print('pred_labels[0:bsize] == batch_label[0:bsize]:', pred_labels[0:bsize] == batch_label[0:bsize])
-        # print('np.sum(pred_labels[0:bsize] == batch_label[0:bsize]):', np.sum(pred_labels[0:bsize] == batch_label[0:bsize]))
-        # print('BATCH', batch_idx, ': correct_batch:', correct_batch)
-        # print('BATCH', batch_idx, ': total_correct:', total_correct)
-        # print('BATCH', batch_idx, ': total_seen:', total_seen)
-        # print('BATCH', batch_idx, ': accuracy:', total_correct / float(total_seen))
-        # print()
+        loss_sum += total_loss        
 
         batch_idx += 1
 
@@ -356,7 +339,7 @@ def train_one_epoch(sess, ops, train_writer):
     TRAIN_DATASET.reset()
 
 
-def eval_train_one_epoch(sess, ops, test_writer):
+def eval_train_one_epoch(sess, ops, train_writer):
     """ ops: dict mapping from string to tf ops """
     global EPOCH_CNT
     is_training = False
@@ -395,7 +378,7 @@ def eval_train_one_epoch(sess, ops, test_writer):
         #     ops['total_loss'], ops['pred']], feed_dict=feed_dict)
         summary, step, _, loss_val, ind_loss, pred_labels = sess.run([ops['merged'], ops['step'],
             ops['train_op'], ops['total_loss'], ops['individual_losses'], ops['pred_labels']], feed_dict=feed_dict)
-        test_writer.add_summary(summary, step)
+        train_writer.add_summary(summary, step)
         # pred_val = np.argmax(pred_val, 1)
         pred_labels = pred_labels[0]
         correct_batch = np.sum(pred_labels[0:bsize] == batch_label[0:bsize])

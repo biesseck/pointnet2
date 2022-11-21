@@ -349,8 +349,9 @@ if __name__ == '__main__':
     # log_scale = False
 
     # num_pos_pairs, num_neg_pairs = 10, 10
+    num_pos_pairs, num_neg_pairs = 50, 50
     # num_pos_pairs, num_neg_pairs = 2000, 2000
-    num_pos_pairs, num_neg_pairs = 10000, 10000
+    # num_pos_pairs, num_neg_pairs = 10000, 10000
     # num_pos_pairs, num_neg_pairs = 25000, 25000
     # num_pos_pairs, num_neg_pairs = 50000, 50000
     # num_pos_pairs, num_neg_pairs = 100000, 100000

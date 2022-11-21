@@ -53,26 +53,27 @@ class MS1MV2_3D_Reconstructed_MICA_Dataset_Pairs():
 
         perc_train = 0.8
         perc_test = 1.0 - perc_train
-        # num_pos_pairs, num_neg_pairs = 100, 100
+        # num_pos_pairs, num_neg_pairs = 50, 50
+        num_pos_pairs, num_neg_pairs = 100, 100
         # num_pos_pairs, num_neg_pairs = 10000, 10000
-        num_pos_pairs, num_neg_pairs = 25000, 25000
+        # num_pos_pairs, num_neg_pairs = 25000, 25000
         # num_pos_pairs, num_neg_pairs = 50000, 50000
         reuse_samples = True
 
         print('Making positive and negative pairs for', split, '...')
-        pos_pairs_format_labels_paths, neg_pairs_labels_paths, pos_pair_label, neg_pair_label = TreeMS1MV2_3DReconstructedMICA().make_pairs_labels_with_paths(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
+        pos_pairs_format_labels_paths, neg_pairs_format_labels_paths, pos_pair_label, neg_pair_label = TreeMS1MV2_3DReconstructedMICA().make_pairs_labels_with_paths(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples, num_pos_pairs, num_neg_pairs, reuse_samples)
 
         if split=='train':
             num_pos_pairs_train = int(round(num_pos_pairs * perc_train))
             num_neg_pairs_train = int(round(num_neg_pairs * perc_train))
             all_pos_pairs_paths = pos_pairs_format_labels_paths[:num_pos_pairs_train]
-            all_neg_pairs_paths = neg_pairs_labels_paths[:num_neg_pairs_train]
+            all_neg_pairs_paths = neg_pairs_format_labels_paths[:num_neg_pairs_train]
 
         elif split=='test':
             num_pos_pairs_test = int(round(num_pos_pairs * perc_test))
             num_neg_pairs_test = int(round(num_neg_pairs * perc_test))
             all_pos_pairs_paths = pos_pairs_format_labels_paths[num_pos_pairs_test:]
-            all_neg_pairs_paths = neg_pairs_labels_paths[num_neg_pairs_test:]
+            all_neg_pairs_paths = neg_pairs_format_labels_paths[num_neg_pairs_test:]
 
         self.datapath = []
         self.datapath += all_pos_pairs_paths
