@@ -123,6 +123,14 @@ def evaluate(num_votes):
 
 
 # Bernardo
+def save_to_text_file(path_file, all_margins_eval, all_tp_eval, all_fp_eval, all_tn_eval, all_fn_eval, all_acc_eval):
+    with open(path_file, 'w') as f:
+        f.write('margin,tp,fp,tn,fn,acc' + '\n')
+        for margin, tp, fp, tn, fn, acc in zip(all_margins_eval, all_tp_eval, all_fp_eval, all_tn_eval, all_fn_eval, all_acc_eval):
+            f.write(str(margin) + ',' + str(tp) + ',' + str(fp) + ',' + str(tn) + ',' + str(fn) + ',' + str(acc) + '\n')
+
+
+# Bernardo
 def evaluate_varying_margin(num_votes):
     is_training = False
             
@@ -170,8 +178,11 @@ def evaluate_varying_margin(num_votes):
     
 
     # all_margins_eval = np.arange(0, 1, 0.2, dtype=np.float32)
+    # all_margins_eval = np.arange(0, 1, 0.1, dtype=np.float32)
+    # all_margins_eval = np.arange(0, 1, 0.05, dtype=np.float32)
+    all_margins_eval = np.arange(0, 2, 0.05, dtype=np.float32)
+    # all_margins_eval = np.arange(0, 1, 0.01, dtype=np.float32)
     # all_margins_eval = np.arange(0, 1, 0.005)
-    all_margins_eval = np.arange(0, 1, 0.01, dtype=np.float32)
     all_tp_eval = np.zeros_like(all_margins_eval)
     all_fp_eval = np.zeros_like(all_margins_eval)
     all_tn_eval = np.zeros_like(all_margins_eval)
@@ -186,13 +197,16 @@ def evaluate_varying_margin(num_votes):
         all_fp_eval[i] = fp
         all_fn_eval[i] = fn
         all_acc_eval[i] = acc
-        # print('margin:', margin, '    tp:', tp, '    tn', tn, '    fp', fp, '    fn', fn, '    acc', acc)
-        # print('-------------------------')
+        print('    margin:', margin, '    tp:', tp, '    tn', tn, '    fp', fp, '    fn', fn, '    acc', acc)
+        print('-------------------------')
     
     print('Evaluation of dataset \'' + FLAGS.dataset + '\'')
     for i, margin in enumerate(all_margins_eval):
         print('margin:', margin, '    tp:', all_tp_eval[i], '    tn', all_tn_eval[i], '    fp', all_fp_eval[i], '    fn', all_fn_eval[i], '    acc', all_acc_eval[i])
 
+    path_file = '/'.join(MODEL_PATH.split('/')[:-1]) + '/' + 'evaluation_on_dataset=' + FLAGS.dataset + '.csv'
+    print('Saving to CSV file:', path_file)
+    save_to_text_file(path_file, all_margins_eval, all_tp_eval, all_fp_eval, all_tn_eval, all_fn_eval, all_acc_eval)
 
 
 

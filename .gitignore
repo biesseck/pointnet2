@@ -9,3 +9,5 @@ data/
 log/
 */log_*/
 */logs_training/*
+
+face_recognition_3d/dump/*

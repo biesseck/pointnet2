@@ -22,6 +22,31 @@ class TreeMS1MV2_3DReconstructedMICA:
         sub_folders = [f.name for f in os.scandir(dir_path) if f.is_dir()]
         return sorted(sub_folders)
     
+    '''
+    def get_all_pointclouds_paths(self, dir_path, dir_level=2, pc_ext='.ply'):
+        all_sub_folders = self.get_all_sub_folders(dir_path, dir_level)
+        all_pc_paths = []
+        all_pc_subjects = []
+        print('all_sub_folders:', all_sub_folders)
+        print('len(all_sub_folders):', len(all_sub_folders))
+        for sub_folder_pointcloud in all_sub_folders:
+            pc_paths = sorted(glob(sub_folder_pointcloud + '/*' + pc_ext))
+            print('pc_paths:', pc_paths)
+            assert len(pc_paths) > 0
+            pc_subjects = [pc_path.split('/')[-3] for pc_path in pc_paths]
+            print('pc_subjects:', pc_subjects)
+            assert len(pc_subjects) > 0
+            print('----------------------')
+            # raw_input('PAUSED')
+            all_pc_paths += pc_paths
+            all_pc_subjects += pc_subjects
+        
+        assert len(all_pc_paths) > 0
+        assert len(all_pc_subjects) > 0
+        return all_pc_paths, all_pc_subjects
+    '''
+
+    # TEMP WHILE FACES ARE BEING RECONSTRUCTED BY MICA
     def get_all_pointclouds_paths(self, dir_path, dir_level=2, pc_ext='.ply'):
         all_sub_folders = self.get_all_sub_folders(dir_path, dir_level)
         all_pc_paths = []
@@ -30,15 +55,16 @@ class TreeMS1MV2_3DReconstructedMICA:
         # print('len(all_sub_folders):', len(all_sub_folders))
         for sub_folder_pointcloud in all_sub_folders:
             pc_paths = sorted(glob(sub_folder_pointcloud + '/*' + pc_ext))
-            assert len(pc_paths) > 0
-            pc_subjects = [pc_path.split('/')[-3] for pc_path in pc_paths]
-            assert len(pc_subjects) > 0
-            # print('pc_paths:', pc_paths)
-            # print('kp_paths:', kp_paths)
-            # print('----------------------')
-            # input('PAUSED')
-            all_pc_paths += pc_paths
-            all_pc_subjects += pc_subjects
+            if len(pc_paths) > 0:
+                # print('pc_paths:', pc_paths)
+                assert len(pc_paths) > 0
+                pc_subjects = [pc_path.split('/')[-3] for pc_path in pc_paths]
+                # print('pc_subjects:', pc_subjects)
+                assert len(pc_subjects) > 0
+                # print('----------------------')
+                # raw_input('PAUSED')
+                all_pc_paths += pc_paths
+                all_pc_subjects += pc_subjects
         
         assert len(all_pc_paths) > 0
         assert len(all_pc_subjects) > 0
@@ -87,7 +113,7 @@ class TreeMS1MV2_3DReconstructedMICA:
         return filtered_pc_paths, filtered_pc_subjects, filtered_subjects_names, filtered_samples_per_subject
 
     def load_filter_organize_pointclouds_paths(self, dir_path, pc_ext='.ply', min_samples=2, max_samples=-1):
-        all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject = self.get_all_pointclouds_paths_count(dir_path, pc_ext)
+        all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, indexes_samples = self.get_all_pointclouds_paths_count(dir_path, 2, pc_ext)
         all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject = self.filter_paths_by_minimum_samples(all_pc_paths, all_pc_subjects, unique_subjects_names, samples_per_subject, pc_ext, min_samples, max_samples)
         subjects_with_pc_paths = [()] * len(all_pc_paths)
         for i, pc_path, pc_subj in zip(range(len(all_pc_paths)), all_pc_paths, all_pc_subjects):

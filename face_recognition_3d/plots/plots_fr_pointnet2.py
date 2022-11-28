@@ -83,7 +83,7 @@ def load_original_training_log_pointnet2_verif_pairs(path_file=''):
 
         return parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy
 
-
+                                    
 def plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title='', subtitle='', path_image='.', show_fig=False, save_fig=False):
     # plot loss during training
     pyplot.clf()
