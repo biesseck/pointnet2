@@ -207,8 +207,8 @@ def train():
 
             # Get model and loss 
             # pred, end_points = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay)                         # original
-            pred, end_points, weights_fc3 = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay, num_class=NUM_CLASSES)    # Bernardo
-            pred, loss, classify_loss = MODEL.get_loss(pred, labels_pl, end_points, weights_fc3, TRAIN_DATASET.num_classes)
+            embd, end_points, weights_fc3 = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay, num_class=NUM_CLASSES)    # Bernardo
+            pred, loss, classify_loss = MODEL.get_loss(embd, labels_pl, end_points, weights_fc3, TRAIN_DATASET.num_classes)
             
             
             losses = tf.get_collection('losses')
