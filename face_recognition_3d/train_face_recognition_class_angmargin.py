@@ -68,6 +68,7 @@ parser.add_argument('--dataset', type=str, default='reconst_mica_ms1mv2_reduced'
 
 
 FLAGS = parser.parse_args()
+print('FLAGS:', FLAGS)
 
 EPOCH_CNT = 0
 
@@ -199,7 +200,7 @@ def train():
             # Get model and loss 
             # pred, end_points = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay)                         # original
             embd, end_points, weights_fc3 = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay, num_class=NUM_CLASSES)    # Bernardo
-            pred, loss, classify_loss = MODEL.get_loss_arcface(embd, labels_pl, end_points, weights_fc3, TRAIN_DATASET.num_classes, FLAGS.margin_arc, FLAGS.scale_arc)
+            pred, loss, classify_loss = MODEL.get_loss_arcface(embd, labels_pl, end_points, weights_fc3, TRAIN_DATASET.num_classes, FLAGS.margin_arc, float(FLAGS.scale_arc))
             # pred, loss, classify_loss = MODEL.get_loss_common_cross_entropy(embd, labels_pl, end_points, weights_fc3, TRAIN_DATASET.num_classes)
             
             losses = tf.get_collection('losses')
@@ -465,7 +466,7 @@ def plot_classification_training_history():
     elif FLAGS.dataset.upper() == 'reconst_mica_ms1mv2_reduced'.upper():
         title = 'PointNet++ training on MS1MV2_reduced-Reconst3D-MICA \nClassification (1:N) - '+str(NUM_CLASSES)+' classes - min_samples='+str(min_samples)+' - max_samples='+str(max_samples)
 
-    subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ')
+    subtitle = 'Parameters: ' + plots_fr_pointnet2.break_string(parameters, substring=', ', num_parts=4)
     # path_image = './training_history.png'
     path_image = '/'.join(path_log_file.split('/')[:-1]) + '/training_history_from_log_file.png'
     print('Saving training history:', path_image)
