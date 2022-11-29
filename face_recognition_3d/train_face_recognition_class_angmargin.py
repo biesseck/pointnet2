@@ -53,6 +53,8 @@ parser.add_argument('--momentum', type=float, default=0.9, help='Initial learnin
 parser.add_argument('--optimizer', default='adam', help='adam or momentum [default: adam]')
 parser.add_argument('--decay_step', type=int, default=200000, help='Decay step for lr decay [default: 200000]')
 parser.add_argument('--decay_rate', type=float, default=0.7, help='Decay rate for lr decay [default: 0.7]')
+parser.add_argument('--margin_arc', type=float, default=0.5, help='Margin m for ArcFace')
+parser.add_argument('--scale_arc', type=float, default=32, help='Scale s for ArcFace')
 
 # parser.add_argument('--normal', action='store_true', help='Whether to use normal information')     # original
 # parser.add_argument('--normal', type=bool, default=True, help='Whether to use normal information')   # Bernardo
@@ -103,12 +105,6 @@ HOSTNAME = socket.gethostname()
 BEST_MEAN_LOSS = float('inf')
 BEST_ACC = float('-inf')
 
-# NUM_CLASSES = 40    # original
-
-
-# Shapenet official train/test split
-# if FLAGS.normal:
-#     assert(NUM_POINT<=10000)
 
 if FLAGS.dataset.upper() == 'frgc'.upper() or FLAGS.dataset.upper() == 'frgcv2'.upper():
     DATA_PATH = os.path.join(ROOT_DIR, '../data/FRGCv2.0/FRGC-2.0-dist')
@@ -125,16 +121,11 @@ elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
 elif FLAGS.dataset.upper() == 'reconst_mica_lfw'.upper():
     DATA_PATH = os.path.join(ROOT_DIR, '../../MICA/demo/output/lfw')
     
-    # min_samples = 3
-    # min_samples = 10
-    min_samples = 20
-    # min_samples = 50
-
-    # max_samples = -1
-    # max_samples = 3
-    # max_samples = 10
-    max_samples = 20
-    # max_samples = 50
+    min_samples, max_samples = 3, -1
+    # min_samples, max_samples = 3, 3
+    # min_samples, max_samples = 10, 10
+    # min_samples, max_samples = 20, 20
+    # min_samples, max_samples = 50, 50
     
     TRAIN_DATASET = lfw_3Dreconstructed_MICA_dataset.LFR_3D_Reconstructed_MICA_Dataset(root=DATA_PATH, npoints=NUM_POINT, min_samples=min_samples, max_samples=max_samples, split='train', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
     TEST_DATASET  = lfw_3Dreconstructed_MICA_dataset.LFR_3D_Reconstructed_MICA_Dataset(root=DATA_PATH, npoints=NUM_POINT, min_samples=min_samples, max_samples=max_samples, split='test', normal_channel=FLAGS.normal, batch_size=BATCH_SIZE)
@@ -208,8 +199,8 @@ def train():
             # Get model and loss 
             # pred, end_points = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay)                         # original
             embd, end_points, weights_fc3 = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay, num_class=NUM_CLASSES)    # Bernardo
-            pred, loss, classify_loss = MODEL.get_loss(embd, labels_pl, end_points, weights_fc3, TRAIN_DATASET.num_classes)
-            
+            pred, loss, classify_loss = MODEL.get_loss_arcface(embd, labels_pl, end_points, weights_fc3, TRAIN_DATASET.num_classes, FLAGS.margin_arc, FLAGS.scale_arc)
+            # pred, loss, classify_loss = MODEL.get_loss_common_cross_entropy(embd, labels_pl, end_points, weights_fc3, TRAIN_DATASET.num_classes)
             
             losses = tf.get_collection('losses')
             total_loss = tf.add_n(losses, name='total_loss')
@@ -261,21 +252,39 @@ def train():
                'step': batch,
                'end_points': end_points}
 
+        global EPOCH_CNT, BEST_MEAN_LOSS, BEST_ACC
         best_acc = -1
-        for epoch in range(MAX_EPOCH):
+        for epoch in range(MAX_EPOCH+1):
             log_string('**** EPOCH %03d ****' % (epoch))
             sys.stdout.flush()
-             
-            train_one_epoch(sess, ops, train_writer)
-            eval_one_epoch(sess, ops, test_writer)
+            
+            if epoch > 0:
+                train_one_epoch(sess, ops, train_writer)
 
-            # Bernardo
-            plot_classification_training_history()
+            # train_one_epoch(sess, ops, train_writer)
+            # eval_one_epoch(sess, ops, test_writer)
+            loss_sum, train_mean_loss, train_accuracy, train_avg_class_acc = eval_train_one_epoch(sess, ops, train_writer)
+            loss_sum, test_mean_loss, test_accuracy, test_avg_class_acc = eval_test_one_epoch(sess, ops, test_writer)
+            log_string('')
+
+            if train_mean_loss < BEST_MEAN_LOSS:
+                BEST_MEAN_LOSS = train_mean_loss
+                save_path = saver.save(sess, os.path.join(LOG_DIR, "model_best_train_mean_loss.ckpt"))
+                print("Best model (train_mean_loss) saved in file: %s" % save_path)
+            if train_accuracy > BEST_ACC:
+                BEST_ACC = train_accuracy
+                save_path = saver.save(sess, os.path.join(LOG_DIR, "model_best_train_accuracy.ckpt"))
+                print("Best model (train_accuracy) saved in file: %s" % save_path)
 
             # Save the variables to disk.
             if epoch % 10 == 0:
                 save_path = saver.save(sess, os.path.join(LOG_DIR, "model.ckpt"))
                 log_string("Model saved in file: %s" % save_path)
+
+            # Bernardo
+            plot_classification_training_history()
+            EPOCH_CNT += 1
+
 
 
 def train_one_epoch(sess, ops, train_writer):
@@ -312,18 +321,78 @@ def train_one_epoch(sess, ops, train_writer):
         total_correct += correct
         total_seen += bsize
         loss_sum += loss_val
-        if (batch_idx+1)%50 == 0:
-            log_string(' ---- batch: %03d ----' % (batch_idx+1))
-            log_string('mean loss: %f' % (loss_sum / 50))
-            log_string('accuracy: %f' % (total_correct / float(total_seen)))
-            total_correct = 0
-            total_seen = 0
-            loss_sum = 0
+        # if (batch_idx+1)%50 == 0:
+        #     log_string(' ---- batch: %03d ----' % (batch_idx+1))
+        #     log_string('mean loss: %f' % (loss_sum / 50))
+        #     log_string('accuracy: %f' % (total_correct / float(total_seen)))
+        #     total_correct = 0
+        #     total_seen = 0
+        #     loss_sum = 0
         batch_idx += 1
 
     TRAIN_DATASET.reset()
-        
-def eval_one_epoch(sess, ops, test_writer):
+
+
+
+def eval_train_one_epoch(sess, ops, test_writer):
+    """ ops: dict mapping from string to tf ops """
+    global EPOCH_CNT
+    is_training = False
+
+    # Make sure batch data is of same size
+    cur_batch_data = np.zeros((BATCH_SIZE,NUM_POINT,TRAIN_DATASET.num_channel()))
+    cur_batch_label = np.zeros((BATCH_SIZE), dtype=np.int32)
+
+    total_correct = 0
+    total_seen = 0
+    loss_sum = 0
+    batch_idx = 0
+    shape_ious = []
+    total_seen_class = [0 for _ in range(NUM_CLASSES)]
+    total_correct_class = [0 for _ in range(NUM_CLASSES)]
+
+    log_string(str(datetime.now()))
+    log_string('---- EPOCH %03d TRAIN EVALUATION ----'%(EPOCH_CNT))
+
+    while TRAIN_DATASET.has_next_batch():
+        batch_data, batch_label = TRAIN_DATASET.next_batch(augment=False)
+        bsize = batch_data.shape[0]
+        # for the last batch in the epoch, the bsize:end are from last batch
+        cur_batch_data[0:bsize,...] = batch_data
+        cur_batch_label[0:bsize] = batch_label
+
+        feed_dict = {ops['pointclouds_pl']: cur_batch_data,
+                     ops['labels_pl']: cur_batch_label,
+                     ops['is_training_pl']: is_training}
+        summary, step, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
+            ops['loss'], ops['pred']], feed_dict=feed_dict)
+        test_writer.add_summary(summary, step)
+        pred_val = np.argmax(pred_val, 1)
+        correct = np.sum(pred_val[0:bsize] == batch_label[0:bsize])
+        total_correct += correct
+        total_seen += bsize
+        loss_sum += loss_val
+        batch_idx += 1
+        for i in range(0, bsize):
+            l = batch_label[i]
+            total_seen_class[l] += 1
+            total_correct_class[l] += (pred_val[i] == l)
+    
+    train_mean_loss = loss_sum / float(batch_idx)
+    train_accuracy = total_correct / float(total_seen)
+    train_avg_class_acc = np.mean(np.array(total_correct_class)/np.array(total_seen_class,dtype=np.float))
+    log_string('train loss sum: %f' % (loss_sum))
+    log_string('train mean loss: %f' % (train_mean_loss))
+    log_string('train accuracy: %f'% (train_accuracy))
+    log_string('train avg class acc: %f' % (train_avg_class_acc))
+    
+    # EPOCH_CNT += 1
+    TRAIN_DATASET.reset()
+    return loss_sum, train_mean_loss, train_accuracy, train_avg_class_acc
+
+
+
+def eval_test_one_epoch(sess, ops, test_writer):
     """ ops: dict mapping from string to tf ops """
     global EPOCH_CNT
     is_training = False
@@ -341,7 +410,7 @@ def eval_one_epoch(sess, ops, test_writer):
     total_correct_class = [0 for _ in range(NUM_CLASSES)]
     
     log_string(str(datetime.now()))
-    log_string('---- EPOCH %03d EVALUATION ----'%(EPOCH_CNT))
+    log_string('---- EPOCH %03d TEST EVALUATION ----'%(EPOCH_CNT))
     
     while TEST_DATASET.has_next_batch():
         batch_data, batch_label = TEST_DATASET.next_batch(augment=False)
@@ -367,20 +436,24 @@ def eval_one_epoch(sess, ops, test_writer):
             total_seen_class[l] += 1
             total_correct_class[l] += (pred_val[i] == l)
     
-    log_string('eval mean loss: %f' % (loss_sum / float(batch_idx)))
-    log_string('eval accuracy: %f'% (total_correct / float(total_seen)))
-    log_string('eval avg class acc: %f' % (np.mean(np.array(total_correct_class)/np.array(total_seen_class,dtype=np.float))))
-    EPOCH_CNT += 1
-
+    test_mean_loss = loss_sum / float(batch_idx)
+    test_accuracy = total_correct / float(total_seen)
+    test_avg_class_acc = np.mean(np.array(total_correct_class)/np.array(total_seen_class,dtype=np.float))
+    log_string('test loss sum: %f' % (loss_sum))
+    log_string('test mean loss: %f' % (test_mean_loss))
+    log_string('test accuracy: %f'% (test_accuracy))
+    log_string('test avg class acc: %f' % (test_avg_class_acc))
+    
+    # EPOCH_CNT += 1
     TEST_DATASET.reset()
-    return total_correct/float(total_seen)
+    return loss_sum, test_mean_loss, test_accuracy, test_avg_class_acc
 
 
 # Bernardo
 def plot_classification_training_history():
     path_log_file = os.path.join(LOG_DIR, LOG_FILE_NAME)
-    parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = plots_fr_pointnet2.load_original_training_log_pointnet2(path_file=path_log_file)
-
+    parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy = plots_fr_pointnet2.load_original_training_log_pointnet2_angmargin(path_file=path_log_file)
+    
     if FLAGS.dataset.upper() == 'frgc'.upper() or FLAGS.dataset.upper() == 'frgcv2'.upper():
         title = 'PointNet++ training on FRGCv2 \nClassification (1:N) - '+str(NUM_CLASSES)+' classes'
     elif FLAGS.dataset.upper() == 'synthetic_gpmm'.upper():
@@ -396,7 +469,7 @@ def plot_classification_training_history():
     # path_image = './training_history.png'
     path_image = '/'.join(path_log_file.split('/')[:-1]) + '/training_history_from_log_file.png'
     print('Saving training history:', path_image)
-    plots_fr_pointnet2.plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
+    plots_fr_pointnet2.plot_training_history_pointnet2_angmargin(epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
 
 
 

@@ -83,6 +83,47 @@ def load_original_training_log_pointnet2_verif_pairs(path_file=''):
 
         return parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy
 
+
+def load_original_training_log_pointnet2_angmargin(path_file=''):
+    with open(path_file) as f:
+        all_lines = f.readlines()
+        parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy = [], [], [], [], [], []
+        for i, line in enumerate(all_lines):
+            line = line[:-1]
+            # print('line:', line)
+            if line.startswith('Namespace'):
+                # parameters = line.replace('Namespace', '').replace('(', '').replace(')', '')
+                parameters = line.replace('Namespace', '')
+                # print('parameters:', parameters)
+
+            if line.startswith('---- EPOCH') and line.endswith('TRAIN EVALUATION ----'):
+                epoch.append(int(line.split(' ')[2]))
+                if i+2 < len(all_lines) and all_lines[i+2].startswith('train mean loss:'):
+                    train_mean_loss.append(float(all_lines[i+2][:-1].split(':')[-1]))
+                if i+3 < len(all_lines) and all_lines[i+3].startswith('train accuracy'):
+                    train_accuracy.append(float(all_lines[i+3][:-1].split(':')[-1]))
+
+            if line.startswith('---- EPOCH') and line.endswith('TEST EVALUATION ----'):
+                if i+2 < len(all_lines) and all_lines[i+2].startswith('test mean loss:'):
+                    test_mean_loss.append(float(all_lines[i+2][:-1].split(':')[-1]))
+                if i+3 < len(all_lines) and all_lines[i+3].startswith('test accuracy'):
+                    test_accuracy.append(float(all_lines[i+3][:-1].split(':')[-1]))
+
+        max_loss_value = max(max(train_mean_loss), max(test_mean_loss))
+        epoch = np.array(epoch, dtype=np.int32)
+        train_mean_loss = np.array(train_mean_loss, dtype=np.float32) / max_loss_value
+        train_accuracy = np.array(train_accuracy, dtype=np.float32)
+        test_mean_loss = np.array(test_mean_loss, dtype=np.float32) / max_loss_value
+        test_accuracy = np.array(test_accuracy, dtype=np.float32)
+
+        # print('epoch:', epoch)
+        # print('train_mean_loss:', train_mean_loss)
+        # print('train_accuracy:', train_accuracy)
+        # print('test_mean_loss:', test_mean_loss)
+        # print('test_accuracy:', test_accuracy)
+
+        return parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy
+
                                     
 def plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc, title='', subtitle='', path_image='.', show_fig=False, save_fig=False):
     # plot loss during training
@@ -122,6 +163,46 @@ def plot_training_history_pointnet2(epoch, eval_mean_loss, eval_accuracy, eval_a
 
 
 def plot_training_history_pointnet2_verif_pairs(epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy, title='', subtitle='', path_image='.', show_fig=False, save_fig=False):
+    # plot loss during training
+    pyplot.clf()
+    # eval_accuracy = eval_mean_loss.copy()
+    if len(train_mean_loss) > 0:
+        if len(test_accuracy) > 0:
+            pyplot.subplot(211)
+        pyplot.plot(epoch, train_mean_loss, label='train_mean_loss', color='red')
+        pyplot.plot(epoch, test_mean_loss, label='test_mean_loss', color='blue')
+        pyplot.xlabel('Epoch')
+        pyplot.ylabel('Error')
+        pyplot.ylim(0, np.nanmax(train_mean_loss)*1.25)
+        pyplot.legend()
+    
+    pyplot.suptitle(title, fontsize=11, fontweight='bold')
+    pyplot.title(subtitle, fontsize=8)
+    
+    if len(test_accuracy) > 0:
+        # plot accuracy during training
+        pyplot.subplot(212)
+        # pyplot.title('Accuracy')
+        pyplot.plot(epoch, train_accuracy, label='train_accuracy', color='red')
+        pyplot.plot(epoch, test_accuracy, label='test_accuracy', color='blue')
+        pyplot.xlabel('Epoch')
+        pyplot.ylabel('Accuracy')
+        pyplot.ylim(0, 1)
+        pyplot.legend()
+
+    pyplot.subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.75, wspace=0.4, hspace=0.4)
+
+    if save_fig:
+        pyplot.savefig(path_image)
+        if path_image.endswith('.png'):
+            pyplot.savefig(path_image.replace('.png', '.svg'))
+        if path_image.endswith('.jpg'):
+            pyplot.savefig(path_image.replace('.jpg', '.svg'))
+    if show_fig:
+        pyplot.show()
+
+
+def plot_training_history_pointnet2_angmargin(epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy, title='', subtitle='', path_image='.', show_fig=False, save_fig=False):
     # plot loss during training
     pyplot.clf()
     # eval_accuracy = eval_mean_loss.copy()

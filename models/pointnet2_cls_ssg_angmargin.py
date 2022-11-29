@@ -71,7 +71,7 @@ def get_model(point_cloud, is_training, bn_decay=None, num_class=0):
 
 # Bernardo
 # from: https://github.com/luckycallor/InsightFace-tensorflow/blob/0fda5dc7fe2a651de08b0ed1bb7cc0ebc2dcd9f7/losses/logit_loss.py#L21
-def get_loss(embd, labels, end_points, weights_fc, num_classes, s=30.0, m=0.5):
+def get_loss_arcface(embd, labels, end_points, weights_fc, num_classes, m=0.5, s=30.0):
     embds = tf.nn.l2_normalize(embd, dim=1, name='normed_embd')
     weights = tf.nn.l2_normalize(weights_fc, dim=0)
 
@@ -105,6 +105,13 @@ def get_loss(embd, labels, end_points, weights_fc, num_classes, s=30.0, m=0.5):
     return logits, loss, classify_loss
 
 
+# Bernardo
+def get_loss_common_cross_entropy(embd, label, end_points, weights_fc, num_classes, m=0.5, s=30.0):
+    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=embd, labels=label)
+    classify_loss = tf.reduce_mean(loss)
+    tf.summary.scalar('classify loss', classify_loss)
+    tf.add_to_collection('losses', classify_loss)
+    return embd, loss, classify_loss
 
 
 if __name__=='__main__':
