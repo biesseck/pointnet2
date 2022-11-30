@@ -213,7 +213,8 @@ def plot_training_history_pointnet2_angmargin(epoch, train_mean_loss, train_accu
         pyplot.plot(epoch, test_mean_loss, label='test_mean_loss', color='blue')
         pyplot.xlabel('Epoch')
         pyplot.ylabel('Error')
-        pyplot.ylim(0, np.nanmax(train_mean_loss)*1.25)
+        # pyplot.ylim(0, np.nanmax(train_mean_loss)*1.25)
+        pyplot.ylim(0, 1)
         pyplot.legend()
     
     pyplot.suptitle(title, fontsize=11, fontweight='bold')
@@ -328,7 +329,7 @@ if __name__ == '__main__':
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.005/log_train.txt']
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-21_FGRCv2_dataset_133classes_lr=0.01/log_train.txt']
         # sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/log_face_recognition_2022-10-24_SyntheticFaces_dataset_100classes_10exp_lr=0.001_batch=32/log_train.txt']
-        sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/verification/log_face_recognition/log_train.txt']
+        sys.argv += ['-input_path', '/home/bjgbiesseck/GitHub/pointnet2_tf_original_biesseck/face_recognition_3d/logs_training/classification/log_face_recognition_train_arcface=ms1mv2-reduced_batch=16_margin=0.0_TEST-PLOT/log_train.txt']
 
 
     args = parse_args()
@@ -336,11 +337,13 @@ if __name__ == '__main__':
     # load_original_training_log_pointnet2(path_file=args.input_path)
 
     # parameters, epoch, eval_mean_loss, eval_accuracy, eval_avg_class_acc = load_original_training_log_pointnet2(path_file=args.input_path)
-    parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy = load_original_training_log_pointnet2_verif_pairs(path_file=args.input_path)
-
-    title = 'PointNet++ training on LFW-Reconst3D-MICA \nVerification (1:1)'
-    subtitle = 'Parameters: ' + break_string(parameters, substring=', ')
+    # parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy = load_original_training_log_pointnet2_verif_pairs(path_file=args.input_path)
+    parameters, epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy = load_original_training_log_pointnet2_angmargin(path_file=args.input_path)
+    
+    title = 'PointNet++ training on MS1MV2_reduced-Reconst3D-MICA \nClassification (1:N) - '+str(22)+' classes - min_samples='+str(3)+' - max_samples='+str(-1)
+    subtitle = 'Parameters: ' + break_string(parameters, substring=', ', num_parts=4)
     path_image = '/'.join(args.input_path.split('/')[:-1]) + '/training_history_from_log_file.png'
-    plot_training_history_pointnet2_verif_pairs(epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
+    print('Saving training history:', path_image)
+    plot_training_history_pointnet2_angmargin(epoch, train_mean_loss, train_accuracy, test_mean_loss, test_accuracy, title=title, subtitle=subtitle, path_image=path_image, show_fig=False, save_fig=True)
 
     
