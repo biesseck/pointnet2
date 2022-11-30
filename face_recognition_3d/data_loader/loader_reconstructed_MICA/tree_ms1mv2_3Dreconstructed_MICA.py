@@ -55,7 +55,7 @@ class TreeMS1MV2_3DReconstructedMICA:
         # print('len(all_sub_folders):', len(all_sub_folders))
         for sub_folder_pointcloud in all_sub_folders:
             pc_paths = sorted(glob(sub_folder_pointcloud + '/*' + pc_ext))
-            if len(pc_paths) > 0:
+            if len(pc_paths) > 0:    # Added to prevent error
                 # print('pc_paths:', pc_paths)
                 assert len(pc_paths) > 0
                 pc_subjects = [pc_path.split('/')[-3] for pc_path in pc_paths]
